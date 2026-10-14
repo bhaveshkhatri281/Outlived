@@ -1,26 +1,156 @@
 @import "tailwindcss";
 
+/* ------------------------------------------------------------------
+   Colour tokens. Every colour on the site comes from this block.
+   To add a theme later: add a `:root[data-theme="light"]` block with
+   the same variable names and a toggle that sets data-theme on <html>.
+   ------------------------------------------------------------------ */
+:root[data-theme="dark"] {
+  --ink: #0b0b0a; /* page background, near-black (matches photo backdrop) */
+  --ink-2: #151513; /* raised surfaces, cards */
+  --bone: #ece6da; /* primary text, light surfaces */
+  --ash: #8a867e; /* secondary text, borders */
+  --line: #2a2925; /* hairlines */
+  --rust: #b4532a; /* single accent: CTAs, active states, unit counters */
+  color-scheme: dark;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --header-h: 56px;
+  --gutter: 16px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@media (min-width: 768px) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --header-h: 64px;
+    --gutter: 32px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Only the brand palette exists as Tailwind colours, so no stray
+   accent (bg-red-500 etc.) can sneak into components. */
+@theme {
+  --color-*: initial;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-bone: var(--bone);
+  --color-ash: var(--ash);
+  --color-line: var(--line);
+  --color-rust: var(--rust);
+
+  --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --font-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
+
+  --ease-reveal: cubic-bezier(0.215, 0.61, 0.355, 1); /* power3.out */
+  --ease-transition: cubic-bezier(0.455, 0.03, 0.515, 0.955); /* power2.inOut */
+  --ease-fold: cubic-bezier(0.19, 1, 0.22, 1); /* expo.out */
+}
+
+@layer base {
+  html {
+    background: var(--ink);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    background: var(--ink);
+    color: var(--bone);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--rust);
+    color: var(--bone);
+  }
+
+  :focus-visible {
+    outline: 1px solid var(--bone);
+    outline-offset: 3px;
+  }
+
+  button {
+    cursor: pointer;
+  }
+}
+
+/* Film grain: a tiled SVG noise texture at ~3.5% opacity over everything. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@layer utilities {
+  /* Museum-placard catalog text: codes, specs, unit counts, prices. */
+  .mono {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.5;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* Soft edge that melts a product photo into the page background. */
+  .vignette {
+    position: relative;
+  }
+  .vignette::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse 75% 70% at 50% 45%,
+      transparent 55%,
+      color-mix(in oklab, var(--ink) 85%, transparent) 100%
+    );
+  }
+
+  .gutter {
+    padding-inline: var(--gutter);
+  }
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Lenis smooth scroll (recommended base styles). */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
 }

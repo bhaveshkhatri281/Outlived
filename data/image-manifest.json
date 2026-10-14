@@ -1,0 +1,96 @@
+{
+  "products": {
+    "air-bell": {
+      "width": 520,
+      "height": 968
+    },
+    "air-bloom": {
+      "width": 520,
+      "height": 968
+    },
+    "book-jacket-wrap": {
+      "width": 520,
+      "height": 968
+    },
+    "capillary-flow": {
+      "width": 520,
+      "height": 968
+    },
+    "concertina-saddle": {
+      "width": 520,
+      "height": 968
+    },
+    "concertina-shoulders": {
+      "width": 520,
+      "height": 968
+    },
+    "envelope-basin": {
+      "width": 520,
+      "height": 968
+    },
+    "folded-apron": {
+      "width": 520,
+      "height": 968
+    },
+    "folded-saddle": {
+      "width": 520,
+      "height": 968
+    },
+    "loft-ribbon": {
+      "width": 520,
+      "height": 968
+    },
+    "mercury-tide": {
+      "width": 520,
+      "height": 968
+    },
+    "mesh-cocoon": {
+      "width": 520,
+      "height": 968
+    },
+    "miter-stack": {
+      "width": 520,
+      "height": 968
+    },
+    "overfold-pavement": {
+      "width": 520,
+      "height": 968
+    },
+    "parallel-turn": {
+      "width": 520,
+      "height": 968
+    },
+    "parchment-gusset": {
+      "width": 520,
+      "height": 968
+    },
+    "pleat-exchange": {
+      "width": 520,
+      "height": 968
+    },
+    "pleated-hem-wings": {
+      "width": 520,
+      "height": 968
+    },
+    "screen-lantern": {
+      "width": 520,
+      "height": 968
+    },
+    "soft-tessellation": {
+      "width": 520,
+      "height": 968
+    },
+    "stepped-shelf": {
+      "width": 520,
+      "height": 968
+    },
+    "turned-leaf": {
+      "width": 520,
+      "height": 968
+    },
+    "turned-page-sleeves": {
+      "width": 520,
+      "height": 968
+    }
+  }
+}
