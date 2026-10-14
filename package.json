@@ -11,7 +11,9 @@
     "split:sample": "npm run split -- --sample 2",
     "typecheck": "tsc --noEmit",
     "editorial": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning scripts/make-editorial.ts",
-    "qa": "node scripts/qa/capture.mjs"
+    "qa": "node scripts/qa/capture.mjs",
+    "qa:lighthouse": "node scripts/qa/lighthouse.mjs",
+    "qa:report": "node scripts/qa/report.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "^9.8.1",
