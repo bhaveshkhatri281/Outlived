@@ -1,28 +1,34 @@
-import { ButtonLink } from "@/components/ui/Button";
-import { MonoLabel } from "@/components/ui/MonoLabel";
+import { EraChapter } from "@/components/home/EraChapter";
+import { HeroMonument } from "@/components/home/HeroMonument";
+import { ManifestoStrip } from "@/components/home/ManifestoStrip";
+import { NextEra } from "@/components/home/NextEra";
+import { UnfoldPanel } from "@/components/home/UnfoldPanel";
 import { commerce } from "@/lib/commerce";
 
-// TEMPORARY (Phase 1): foundation preview. Replaced by the real home in Phase 3.
+// PLACEHOLDER: which pieces open each Era chapter (4 per Era).
+const FEATURED: Record<string, string[]> = {
+  "01": ["envelope-basin", "soft-tessellation", "turned-leaf", "miter-stack"],
+  "02": ["air-bell", "screen-lantern", "loft-ribbon", "air-bloom"],
+};
+
 export default async function Home() {
-  const products = await commerce.listProducts();
+  const [eras, products] = await Promise.all([commerce.listEras(), commerce.listProducts()]);
+  const hero = products.find((p) => p.slug === "book-jacket-wrap")!;
+  const chapter = (id: "01" | "02") => {
+    const era = eras.find((e) => e.id === id)!;
+    const inEra = products.filter((p) => p.era === id);
+    const featured = FEATURED[id].map((s) => inEra.find((p) => p.slug === s)).filter((p) => !!p);
+    return <EraChapter era={era} featured={featured} total={inEra.length} />;
+  };
 
   return (
     <>
-      <section className="gutter flex min-h-[calc(100svh-var(--header-h))] flex-col justify-end gap-8 pb-12 pt-16">
-        <MonoLabel>Phase 1 · foundation preview</MonoLabel>
-        <h1 className="text-[20vw] font-extrabold uppercase leading-[0.8] tracking-[-0.06em] md:text-[17vw]">
-          Outlived
-        </h1>
-        <p className="max-w-xl text-[20px] font-medium leading-snug md:text-[26px]">
-          Hoodies, shackets and jackets built on folds. Made for what&apos;s left{" "}
-          <em className="font-serif text-[1.15em] font-normal">after the trend.</em>
-        </p>
-        <div className="flex flex-wrap items-center gap-6">
-          <ButtonLink href="/vault">Enter the Vault →</ButtonLink>
-          <MonoLabel>{products.filter((p) => p.status === "live").length} artifacts recovered</MonoLabel>
-        </div>
-      </section>
-
+      <HeroMonument product={hero} />
+      <ManifestoStrip />
+      {chapter("01")}
+      <UnfoldPanel />
+      {chapter("02")}
+      <NextEra pieces={products.filter((p) => p.status === "upcoming")} />
     </>
   );
 }

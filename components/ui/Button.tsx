@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ComponentPropsWithoutRef } from "react";
+import type { ComponentPropsWithoutRef, ComponentPropsWithRef } from "react";
 
 type Variant = "primary" | "outline" | "quiet";
 
@@ -22,7 +22,7 @@ export function Button({
   className,
   type = "button",
   ...rest
-}: ComponentPropsWithoutRef<"button"> & { variant?: Variant }) {
+}: ComponentPropsWithRef<"button"> & { variant?: Variant }) {
   return <button type={type} className={buttonClass(variant, className)} {...rest} />;
 }
 

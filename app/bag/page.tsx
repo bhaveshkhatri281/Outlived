@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
-import { PageStub } from "@/components/layout/PageStub";
+import { BagView } from "@/components/bag/BagView";
 
 export const metadata: Metadata = { title: "Bag", robots: { index: false } };
 
-// TEMPORARY: built in Phase 2.
 export default function BagPage() {
-  return <PageStub label="Being catalogued · Phase 2" title="Bag" line="Line items, sizes, quantities and checkout." />;
+  return (
+    <>
+      <h1 className="gutter pb-8 pt-12 text-[56px] font-extrabold uppercase leading-[0.85] tracking-[-0.05em] md:pt-16 md:text-[96px]">Bag</h1>
+      <BagView />
+    </>
+  );
 }

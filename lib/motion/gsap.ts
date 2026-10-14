@@ -21,6 +21,16 @@ type Loaded = {
 };
 
 let scrollTriggerPromise: Promise<Loaded> | null = null;
+let flipPromise: Promise<{ gsap: Loaded["gsap"]; Flip: typeof import("gsap/Flip").Flip }> | null = null;
+
+/** GSAP + Flip, loaded on demand (Vault filters). */
+export function loadFlip() {
+  flipPromise ??= Promise.all([import("gsap"), import("gsap/Flip")]).then(([g, f]) => {
+    g.gsap.registerPlugin(f.Flip);
+    return { gsap: g.gsap, Flip: f.Flip };
+  });
+  return flipPromise;
+}
 
 /**
  * Loads GSAP + ScrollTrigger on demand, so pages without scroll effects

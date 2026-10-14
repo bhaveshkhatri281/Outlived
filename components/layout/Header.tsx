@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { NAV } from "@/data/site";
 import { selectCount, useCart, useCartHydrated } from "@/lib/store/cart";
 import { MenuOverlay } from "./MenuOverlay";
+import { SoundToggle } from "./SoundToggle";
 
 const linkClass =
   "relative py-2 text-[13px] font-medium uppercase tracking-[0.08em] text-bone after:absolute after:inset-x-0 after:bottom-0.5 after:h-px after:origin-left after:scale-x-0 after:bg-rust after:transition-transform after:duration-200 hover:after:scale-x-100 aria-[current=page]:after:scale-x-100";
@@ -39,6 +40,7 @@ export function Header() {
           </Link>
 
           <nav aria-label="Main" className="flex items-center gap-6 md:gap-9">
+            <SoundToggle className="hidden md:flex" />
             <ul className="hidden items-center gap-9 md:flex">
               {NAV.map((item) => (
                 <li key={item.href}>

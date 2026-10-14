@@ -1,14 +1,13 @@
-import type { ComponentPropsWithoutRef, ElementType } from "react";
+import type { HTMLAttributes } from "react";
 
-type Props<T extends ElementType> = {
-  as?: T;
+type Props = HTMLAttributes<HTMLElement> & {
+  as?: "span" | "p" | "div";
   /** "ash" for secondary placard text, "bone" for primary. */
   tone?: "ash" | "bone";
-} & ComponentPropsWithoutRef<T>;
+};
 
 /** Museum-placard text: `OTL-D07-35 · ERA 01 · UNIT 047/150`. */
-export function MonoLabel<T extends ElementType = "span">({ as, tone = "ash", className = "", ...rest }: Props<T>) {
-  const Tag = as ?? "span";
+export function MonoLabel({ as: Tag = "span", tone = "ash", className = "", ...rest }: Props) {
   return <Tag className={`mono ${tone === "ash" ? "text-ash" : "text-bone"} ${className}`} {...rest} />;
 }
 

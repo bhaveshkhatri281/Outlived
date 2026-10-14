@@ -82,47 +82,47 @@ export const products: Product[] = [
   // ── Era 01 · The Fold · Hoodies ──────────────────────────────────────
   make({
     code: "OTL-D07-01", name: "Envelope Basin", category: "Hoodie", era: "01", colorName: "Bone",
-    constructionNote: "The pocket is cut like an envelope: four flaps fold to the centre and settle into a shallow basin at the waist.",
+    constructionNote: "The kangaroo pocket is cut like an envelope: its corners fold inward and settle into a shallow basin at the waist.",
     price: 5999, unitsTotal: 150, unitsLeft: 62, // PLACEHOLDER
   }),
   make({
     code: "OTL-D07-02", name: "Concertina Shoulders", category: "Hoodie", era: "01", colorName: "Sea Teal",
-    constructionNote: "Accordion pleats run across both shoulders, so the yoke opens when you reach and folds flat when you don't.",
+    constructionNote: "Layered panels step over each shoulder like a folded concertina, opening as you reach and lying flat at rest.",
     price: 6499, unitsTotal: 150, unitsLeft: 88, // PLACEHOLDER
   }),
   make({
     code: "OTL-D07-08", name: "Folded Saddle", category: "Hoodie", era: "01", colorName: "Sand",
-    constructionNote: "The saddle shoulder is folded back on itself, leaving a raised ridge that runs from collar to cuff.",
+    constructionNote: "A second layer is folded back across the chest and shoulders, leaving a raised wave-line ridge from sleeve to sleeve.",
     price: 5999, unitsTotal: 150, unitsLeft: 104, // PLACEHOLDER
   }),
   make({
     code: "OTL-D07-11", name: "Parchment Gusset", category: "Hoodie", era: "01", colorName: "Stone / Olive",
-    constructionNote: "Olive gussets are set into the side seams like the creases of an old letter, adding room through the ribs.",
+    constructionNote: "Pleated olive gussets are set into both side seams like the creases of an old letter, adding room through the ribs.",
     price: 6299, unitsTotal: 150, unitsLeft: 39, // PLACEHOLDER
   }),
   make({
     code: "OTL-D07-13", name: "Soft Tessellation", category: "Hoodie", era: "01", colorName: "Sage",
-    constructionNote: "Stitched-down triangles tile the body, folding the fleece into a soft, repeating relief.",
+    constructionNote: "Pin-tucked triangles tile the whole body, folding the fleece into a soft, repeating relief.",
     price: 6999, unitsTotal: 150, unitsLeft: 71, // PLACEHOLDER
   }),
   make({
-    code: "OTL-D07-22", name: "Folded Apron", category: "Hoodie", era: "01", colorName: "Olive",
-    constructionNote: "A second layer drops from the chest like a folded apron and doubles as a deep front pocket.",
+    code: "OTL-D07-22", name: "Folded Apron", category: "Hoodie", era: "01", colorName: "Olive / Sand",
+    constructionNote: "A front panel drops from a seam across the chest like an apron and opens at the sides onto sand-coloured inserts.",
     price: 5499, unitsTotal: 150, unitsLeft: 120, // PLACEHOLDER
   }),
   make({
     code: "OTL-D07-24", name: "Stepped Shelf", category: "Hoodie", era: "01", colorName: "Lavender",
-    constructionNote: "Horizontal tucks step down the torso, each one a small shelf of folded fabric.",
+    constructionNote: "Diagonal tucks step across the chest, each one a small shelf of folded fabric.",
     price: 6299, unitsTotal: 150, unitsLeft: 55, // PLACEHOLDER
   }),
   make({
     code: "OTL-D07-27", name: "Pleated Hem Wings", category: "Hoodie", era: "01", colorName: "Taupe / Plum",
-    constructionNote: "Box pleats at the hem open like wings as you move, showing a flash of plum lining.",
+    constructionNote: "Folds at the hem open into wings at each hip, showing a flash of plum lining.",
     price: 6799, unitsTotal: 150, unitsLeft: 23, // PLACEHOLDER
   }),
   make({
     code: "OTL-D07-33", name: "Turned Page Sleeves", category: "Hoodie", era: "01", colorName: "Apricot / Rust",
-    constructionNote: "Each sleeve ends in a rust panel turned back on itself, like the corner of a page folded down.",
+    constructionNote: "A rust panel turns back along each sleeve, like the corner of a page folded down.",
     price: 6499, unitsTotal: 150, unitsLeft: 93, // PLACEHOLDER
   }),
   make({
@@ -134,59 +134,59 @@ export const products: Product[] = [
   // ── Era 01 · The Fold · Shackets ─────────────────────────────────────
   make({
     code: "OTL-S07-02", name: "Concertina Saddle", category: "Shacket", era: "01", colorName: "Rust / Teal",
-    constructionNote: "Concertina pleats cross the saddle shoulders and stop at a contrast teal collar.",
+    constructionNote: "Concertina ribs run across the shoulder yoke and stop at a contrast teal collar.",
     price: 7999, unitsTotal: 120, unitsLeft: 34, // PLACEHOLDER
   }),
   make({
     code: "OTL-S07-03", name: "Miter Stack", category: "Shacket", era: "01", colorName: "Bone",
-    constructionNote: "Mitred panels stack down the placket, every corner folded at a clean 45 degrees.",
+    constructionNote: "Three mitred flaps stack over each lower pocket, every layer folded at a clean angle.",
     price: 7499, unitsTotal: 120, unitsLeft: 81, // PLACEHOLDER
   }),
   make({
     code: "OTL-S07-05", name: "Parallel Turn", category: "Shacket", era: "01", colorName: "Navy",
-    constructionNote: "Two parallel folds run the length of the front and turn together at the hem.",
+    constructionNote: "Angled pleats fan across the chest in parallel pairs, turning in toward the placket.",
     price: 7499, unitsTotal: 120, unitsLeft: 66, // PLACEHOLDER
   }),
   make({
     code: "OTL-S07-06", name: "Pleat Exchange", category: "Shacket", era: "01", colorName: "Camel",
-    constructionNote: "Front pleats swap direction at the waist seam: they fold one way above it and the other way below.",
+    constructionNote: "Sewn-down pleats run vertically on the chest while darker panels take over at the sides.",
     price: 7799, unitsTotal: 120, unitsLeft: 52, // PLACEHOLDER
   }),
   make({
     code: "OTL-S07-28", name: "Overfold Pavement", category: "Shacket", era: "01", colorName: "Moss",
-    constructionNote: "Rectangular overfolds are laid edge to edge across the back like paving stones.",
+    constructionNote: "The chest pocket's corner is folded back on itself to show a contrast lining.",
     price: 7999, unitsTotal: 120, unitsLeft: 18, // PLACEHOLDER
   }),
   make({
     code: "OTL-S07-31", name: "Turned Leaf", category: "Shacket", era: "01", colorName: "Chocolate / Sand",
-    constructionNote: "A sand-faced front panel turns back over the chocolate body like a leaf mid-turn.",
+    constructionNote: "Two sand-faced panels turn back over the chocolate chest like leaves mid-turn.",
     price: 7799, unitsTotal: 120, unitsLeft: 73, // PLACEHOLDER
   }),
 
   // ── Era 02 · Air · Jackets ───────────────────────────────────────────
   make({
     code: "OTL-J08-01", name: "Air Bell", category: "Jacket", era: "02", colorName: "Lilac",
-    constructionNote: "Mesh panels flare out from the yoke into a bell that holds a layer of air around the body.",
+    constructionNote: "Bubble-quilted panels hold air in the body; balloon sleeves gather into quilted cuffs above a scalloped hem.",
     price: 8499, unitsTotal: 100, unitsLeft: 41, // PLACEHOLDER
   }),
   make({
     code: "OTL-J08-06", name: "Mesh Cocoon", category: "Jacket", era: "02", colorName: "Sand",
-    constructionNote: "A rounded mesh shell cocoons the torso, loose through the body and gathered at the hem.",
+    constructionNote: "An open mesh body is framed in solid sand, so the jacket cocoons the torso without weight.",
     price: 8299, unitsTotal: 100, unitsLeft: 59, // PLACEHOLDER
   }),
   make({
     code: "OTL-J08-10", name: "Screen Lantern", category: "Jacket", era: "02", colorName: "Bone / Black",
-    constructionNote: "Sheer screen panels framed in black piping stand away from the body like a paper lantern.",
+    constructionNote: "Mesh sleeves glow behind black piping, like the frame of a paper lantern.",
     price: 8999, unitsTotal: 100, unitsLeft: 27, // PLACEHOLDER
   }),
   make({
     code: "OTL-J08-14", name: "Loft Ribbon", category: "Jacket", era: "02", colorName: "Petrol Blue",
-    constructionNote: "Lofted channels wrap the body in ribbons, adding volume without adding weight.",
+    constructionNote: "Raised ribbon seams wrap diagonally around the body, with lofted mesh through the sleeves.",
     price: 8799, unitsTotal: 100, unitsLeft: 64, // PLACEHOLDER
   }),
   make({
     code: "OTL-J08-15", name: "Air Bloom", category: "Jacket", era: "02", colorName: "Ivory / Grey",
-    constructionNote: "Layered mesh petals open from the collar, so the jacket blooms as it catches air.",
+    constructionNote: "Perforated ivory mesh opens over grey side panels, so the jacket breathes as you move.",
     price: 8999, unitsTotal: 100, unitsLeft: 12, // PLACEHOLDER
   }),
 

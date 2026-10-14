@@ -9,7 +9,9 @@
     "lint": "eslint",
     "split": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning scripts/split-products.ts",
     "split:sample": "npm run split -- --sample 2",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "editorial": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning scripts/make-editorial.ts",
+    "qa": "node scripts/qa/capture.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "^9.8.1",
@@ -30,6 +32,7 @@
     "@types/three": "^0.186.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.28",
+    "playwright": "^1.64.1",
     "sharp": "^0.35.5",
     "tailwindcss": "^4",
     "typescript": "^5"

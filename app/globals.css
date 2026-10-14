@@ -12,6 +12,7 @@
   --ash: #8a867e; /* secondary text, borders */
   --line: #2a2925; /* hairlines */
   --rust: #b4532a; /* single accent: CTAs, active states, unit counters */
+  --plinth: #212121; /* the photo backdrop: product images sit on this "lit" grey */
   color-scheme: dark;
 }
 
@@ -27,6 +28,9 @@
   }
 }
 
+@custom-variant pointer-fine (@media (hover: hover) and (pointer: fine));
+@custom-variant touch (@media (hover: none));
+
 /* Only the brand palette exists as Tailwind colours, so no stray
    accent (bg-red-500 etc.) can sneak into components. */
 @theme {
@@ -40,6 +44,7 @@
   --color-ash: var(--ash);
   --color-line: var(--line);
   --color-rust: var(--rust);
+  --color-plinth: var(--plinth);
 
   --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
@@ -54,10 +59,12 @@
   html {
     background: var(--ink);
     -webkit-text-size-adjust: 100%;
+    overflow-x: clip;
   }
 
   body {
     min-height: 100dvh;
+    overflow-x: clip; /* decorative glows and giant type never widen the page */
     background: var(--ink);
     color: var(--bone);
     font-family: var(--font-sans);
@@ -152,5 +159,232 @@ html.lenis body {
   *::before,
   *::after {
     scroll-behavior: auto !important;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* ── Product imagery ───────────────────────────────────────────────────
+   Photos are shot on a grey backdrop (--plinth). `.lit` melts the edges
+   of that backdrop into the page, so every piece stands in its own pool
+   of light instead of a hard-edged box. */
+.lit {
+  -webkit-mask-image:
+    radial-gradient(ellipse 62% 66% at 50% 44%, #000 58%, transparent 100%),
+    linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 9%, #000 82%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    radial-gradient(ellipse 62% 66% at 50% 44%, #000 58%, transparent 100%),
+    linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 9%, #000 82%, transparent 100%);
+  mask-composite: intersect;
+}
+
+/* Clip reveal: images wipe up from the bottom the first time they enter.
+   Only hidden when JS is running, so content never disappears without it. */
+html.js .reveal-clip {
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 900ms var(--ease-reveal);
+}
+html.js .reveal-clip.is-in {
+  clip-path: inset(0 0 0 0);
+}
+@media (prefers-reduced-motion: reduce) {
+  html.js .reveal-clip {
+    clip-path: none;
+    opacity: 0;
+    transition: opacity 400ms linear;
+  }
+  html.js .reveal-clip.is-in {
+    opacity: 1;
+  }
+}
+
+/* ── Custom cursor (desktop only) ─────────────────────────────────── */
+html.has-cursor,
+html.has-cursor * {
+  cursor: none !important;
+}
+html.has-cursor input[type="text"],
+html.has-cursor input[type="tel"],
+html.has-cursor input[type="email"],
+html.has-cursor textarea {
+  cursor: text !important;
+}
+.cursor-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  pointer-events: none;
+}
+.cursor-dot,
+.cursor-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
+.cursor-dot::before {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--bone);
+  transition: transform 200ms var(--ease-reveal), opacity 200ms;
+}
+.cursor-dot[data-mode="view"]::before,
+.cursor-dot[data-mode="drag"]::before {
+  transform: scale(0.5);
+}
+.cursor-dot[data-mode="none"]::before,
+.cursor-dot[data-mode="hidden"]::before {
+  opacity: 0;
+}
+.cursor-ring::before {
+  content: "";
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  margin: -36px 0 0 -36px;
+  border: 1px solid var(--bone);
+  border-radius: 50%;
+  transform: scale(0.12);
+  opacity: 0;
+  transition: transform 260ms var(--ease-reveal), opacity 200ms;
+}
+.cursor-ring[data-mode="link"]::before {
+  transform: scale(0.45);
+  opacity: 0.6;
+}
+.cursor-ring[data-mode="view"]::before,
+.cursor-ring[data-mode="drag"]::before {
+  transform: scale(1);
+  opacity: 1;
+  background: color-mix(in oklab, var(--ink) 35%, transparent);
+  backdrop-filter: blur(2px);
+}
+.cursor-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--bone);
+  opacity: 0;
+  transition: opacity 200ms;
+  white-space: nowrap;
+}
+.cursor-ring[data-mode="view"] .cursor-label,
+.cursor-ring[data-mode="drag"] .cursor-label {
+  opacity: 1;
+}
+
+/* ── Hotspots ─────────────────────────────────────────────────────── */
+@keyframes hotspot-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+.hotspot-ring {
+  animation: hotspot-pulse 1.8s var(--ease-reveal) infinite;
+}
+
+/* ── Shared-element transition (Vault card → product hero) ────────── */
+::view-transition-group(product-hero) {
+  animation-duration: 650ms;
+  animation-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 260ms;
+}
+::view-transition-old(product-hero),
+::view-transition-new(product-hero) {
+  height: 100%;
+  object-fit: cover;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* The hover canvas draws over the image while active; hide the DOM copy underneath. */
+[data-gl-active="1"] .gl-hide {
+  visibility: hidden;
+}
+
+[data-vt-hero] {
+  view-transition-name: product-hero;
+}
+html[data-vt-leaving] [data-vt-hero] {
+  view-transition-name: none;
+}
+
+/* Page transition: book-like fold wipe. */
+@keyframes fold-top-in {
+  from {
+    transform: rotateX(-92deg);
+    filter: brightness(2.4);
+  }
+  to {
+    transform: rotateX(0deg);
+    filter: brightness(1);
+  }
+}
+@keyframes fold-bottom-in {
+  from {
+    transform: rotateX(92deg);
+    filter: brightness(2.4);
+  }
+  to {
+    transform: rotateX(0deg);
+    filter: brightness(1);
+  }
+}
+
+@keyframes sound-bar {
+  50% {
+    transform: scaleY(0.35);
+  }
+}
+
+/* Entry ritual: cover the page before the gate mounts (first visit only, set by an inline script). */
+html[data-gate="pending"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 190;
+  background: var(--ink);
+}
+
+/* Kinetic display titles: letters rise out of a mask on first paint. */
+@keyframes char-rise {
+  from {
+    transform: translateY(108%) rotate(4deg);
+  }
+}
+.kinetic-char {
+  animation: char-rise 1000ms var(--ease-fold) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kinetic-char {
+    animation: none;
   }
 }

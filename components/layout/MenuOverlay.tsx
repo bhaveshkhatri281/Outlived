@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { INFO_LINKS, NAV, SITE } from "@/data/site";
 import { getLenis } from "@/lib/motion/lenis";
+import { SoundToggle } from "./SoundToggle";
 
 type Props = {
   open: boolean;
@@ -72,6 +73,7 @@ export function MenuOverlay({ open, onClose, isActive }: Props) {
         <a href={SITE.instagram} className="mono text-bone" target="_blank" rel="noopener noreferrer">
           Instagram ↗
         </a>
+        <SoundToggle className="mt-3" />
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { INFO_LINKS, NAV, POLICY_LINKS, SITE } from "@/data/site";
+import { FooterWordmark } from "./FooterWordmark";
 
 const colTitle = "mono mb-4 text-ash";
 const colLink = "mono inline-block py-1 text-bone decoration-rust underline-offset-4 hover:underline";
@@ -71,12 +72,7 @@ export function Footer() {
         </ul>
       </div>
 
-      <p
-        aria-hidden="true"
-        className="select-none overflow-hidden whitespace-nowrap text-center text-[23vw] font-extrabold uppercase leading-[0.72] tracking-[-0.06em] text-ink-2"
-      >
-        OUTLIVED
-      </p>
+      <FooterWordmark />
     </footer>
   );
 }
