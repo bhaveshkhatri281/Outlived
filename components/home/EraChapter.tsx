@@ -87,7 +87,7 @@ export function EraChapter({ era, featured, total }: { era: Era; featured: Produ
       const w = rail.clientWidth;
       const cards = Array.from(rail.children) as HTMLElement[];
       cards.forEach((c, i) => {
-        const off = (c.offsetLeft - rail.scrollLeft - 16) / w; // 0 when snapped
+        const off = (c.offsetLeft - rail.scrollLeft - 12) / w; // 0 when snapped
         const t = Math.max(-1, Math.min(0, off));
         c.style.transform = `perspective(1200px) rotateY(${t * 55}deg)`;
         c.style.opacity = String(1 + t * 0.6);
@@ -191,9 +191,9 @@ export function EraChapter({ era, featured, total }: { era: Era; featured: Produ
           <MonoLabel tone="bone">{counter}</MonoLabel>
           {viewAll}
         </div>
-        <div ref={railRef} className="no-scrollbar relative flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-6 [contain:paint]">
+        <div ref={railRef} className="no-scrollbar relative flex snap-x snap-mandatory scroll-px-3 gap-3 overflow-x-auto px-3 pb-6 [contain:paint]">
           {featured.map((p, i) => (
-            <article key={p.slug} className="w-[86vw] shrink-0 snap-start border border-line bg-ink-2 [transform-origin:left_center]">
+            <article key={p.slug} className="w-[80vw] shrink-0 snap-start border border-line bg-ink-2 [transform-origin:left_center]">
               <PageContent product={p} index={i} count={featured.length} compact />
             </article>
           ))}
@@ -213,14 +213,14 @@ function PageContent({ product: p, index, count, compact = false }: { product: P
         data-gl-hover
         data-gl-src={p.images.front}
         data-gl-aspect={520 / 968}
-        className={`lit relative block bg-plinth ${compact ? "aspect-[520/640]" : "col-span-6 h-full"}`}
+        className={`relative block bg-plinth ${compact ? "lit-edge aspect-[520/640]" : "lit col-span-6 h-full"}`}
         aria-label={`${p.name}, view piece`}
       >
         <Image
           src={p.images.front}
           alt={viewAlt(p, "front")}
           fill
-          sizes={compact ? "86vw" : "45vw"}
+          sizes={compact ? "80vw" : "45vw"}
           className="gl-hide object-cover object-top"
         />
       </Link>

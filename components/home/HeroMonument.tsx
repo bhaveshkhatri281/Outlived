@@ -28,6 +28,7 @@ export function HeroMonument({ product: p }: { product: Product }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const figureRef = useRef<HTMLDivElement>(null);
   const typeRef = useRef<HTMLParagraphElement>(null);
+  const coneRef = useRef<HTMLDivElement>(null);
   const layers = useRef<(HTMLDivElement | null)[]>([]);
   const progress = useRef(0);
   const pointer = useRef({ x: 0, y: 0 });
@@ -36,7 +37,7 @@ export function HeroMonument({ product: p }: { product: Product }) {
   const [glReady, setGlReady] = useState(false);
   const [inView, setInView] = useState(true);
   const [view, setView] = useState(0);
-  const [waitForGate] = useState(() => typeof document !== "undefined" && document.documentElement.dataset.gate === "pending");
+  const [waitForGate] = useState(() => typeof document !== "undefined" && ["pending", "up"].includes(document.documentElement.dataset.gate ?? ""));
 
   const pinned = tier !== "static";
   const useGL = tier === "full" && mountGL;
@@ -55,8 +56,9 @@ export function HeroMonument({ product: p }: { product: Product }) {
     };
     const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
     const timer = setTimeout(() => (w.requestIdleCallback ? w.requestIdleCallback(go, { timeout: 1500 }) : go()), 3500);
-    // On a first visit, pressing "Hold to enter" counts: the scene loads while the ring fills.
     events.forEach((e) => window.addEventListener(e, go, { passive: true, once: true }));
+    // Behind the entry gate: mount (and compile) right away, so nothing initialises when the gate opens.
+    if (["pending", "up"].includes(document.documentElement.dataset.gate ?? "")) go();
     function cleanup() {
       clearTimeout(timer);
       events.forEach((e) => window.removeEventListener(e, go));
@@ -116,6 +118,7 @@ export function HeroMonument({ product: p }: { product: Product }) {
       pt.x += (target.x - pt.x) * 0.06;
       pt.y += (target.y - pt.y) * 0.06;
       if (typeRef.current) typeRef.current.style.transform = `translate3d(${-pt.x * 12}px, calc(-50% + ${-pt.y * 8}px), 0)`;
+      if (coneRef.current) coneRef.current.style.transform = `translate3d(${pt.x * 10}px, ${pt.y * 4}px, 0)`;
       raf = requestAnimationFrame(tick);
     };
     window.addEventListener("pointermove", onMove, { passive: true });
@@ -139,7 +142,13 @@ export function HeroMonument({ product: p }: { product: Product }) {
       style={{ height: pinned ? "calc(100svh + var(--pin))" : "100svh" }}
     >
       <div ref={stageRef} className="sticky top-0 h-[100svh] overflow-hidden">
-        {/* OUTLIVED, set enormous behind the figure. Tone-on-tone so the figure (blended "lighten") occludes it. */}
+        {/* Back to front: light cone → OUTLIVED → figure (fully opaque) → dust (WebGL) → UI. */}
+        <div
+          ref={coneRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "radial-gradient(ellipse 24% 82% at 50% 0%, color-mix(in oklab, var(--bone) 11%, transparent), transparent 78%)" }}
+        />
         <p
           ref={typeRef}
           aria-hidden="true"
@@ -152,7 +161,7 @@ export function HeroMonument({ product: p }: { product: Product }) {
         <div
           ref={figureRef}
           className="absolute left-1/2 top-[9svh] h-[70svh] -translate-x-1/2 md:top-[8svh] md:h-[92svh]"
-          style={{ aspectRatio: `${width} / ${height}`, mixBlendMode: "lighten", visibility: hideDom ? "hidden" : "visible" }}
+          style={{ aspectRatio: `${width} / ${height}`, visibility: hideDom ? "hidden" : "visible" }}
         >
           {VIEWS.map((v, i) => (
             <div
@@ -160,7 +169,7 @@ export function HeroMonument({ product: p }: { product: Product }) {
               ref={(el) => {
                 layers.current[i] = el;
               }}
-              className="lit absolute inset-0 bg-plinth will-change-[opacity]"
+              className="lit-edge absolute inset-0 bg-plinth will-change-[opacity]"
               style={{ opacity: i === 0 ? 1 : 0 }}
             >
               <Image
@@ -179,7 +188,7 @@ export function HeroMonument({ product: p }: { product: Product }) {
         </div>
 
         {useGL && (
-          <div className="absolute inset-0" style={{ mixBlendMode: "lighten" }}>
+          <div className="absolute inset-0">
             <MonumentScene
               textures={[p.images.front, p.images.side, p.images.back]}
               stageRef={stageRef}

@@ -4,7 +4,7 @@ import { chromium } from "playwright";
 const url = process.argv[2] ?? "http://localhost:3000/";
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
-await ctx.addInitScript(() => localStorage.setItem("outlived-entered", "1"));
+await ctx.addInitScript(() => sessionStorage.setItem("outlived:entered", "1"));
 const page = await ctx.newPage();
 await page.goto(url, { waitUntil: "networkidle" });
 await page.waitForTimeout(1500);

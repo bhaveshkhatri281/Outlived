@@ -1,5 +1,6 @@
 "use client";
 
+import { gsap } from "gsap";
 import Lenis from "lenis";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -16,11 +17,17 @@ export function SmoothScroll() {
   const enabled = !reduced && !NATIVE_SCROLL.some((p) => pathname.startsWith(p));
   const popped = useRef(false);
 
+  // One frame loop: GSAP's ticker drives Lenis (no separate requestAnimationFrame loop), so
+  // scroll position and ScrollTrigger/GSAP updates always land in the same frame.
   useEffect(() => {
     if (!enabled) return;
-    const lenis = new Lenis({ autoRaf: true, anchors: true, lerp: 0.12 });
+    const lenis = new Lenis({ autoRaf: false, anchors: true, lerp: 0.12 });
+    const tick = (time: number) => lenis.raf(time * 1000);
+    gsap.ticker.add(tick);
+    gsap.ticker.lagSmoothing(0);
     setLenis(lenis);
     return () => {
+      gsap.ticker.remove(tick);
       setLenis(null);
       lenis.destroy();
     };

@@ -133,7 +133,7 @@ async function main() {
       await context.addInitScript(
         ([bag, seed]) => {
           try {
-            localStorage.setItem("outlived-entered", "1"); // skip the entry ritual
+            sessionStorage.setItem("outlived:entered", "1"); // skip the entry ritual
             localStorage.setItem("outlived-hint-turn", "");
             if (seed) localStorage.setItem("outlived-bag", JSON.stringify(bag));
           } catch {}

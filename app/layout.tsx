@@ -35,7 +35,9 @@ const instrumentSerif = Instrument_Serif({
   preload: false,
 });
 
-const GATE_SCRIPT = `(function(){var d=document.documentElement;d.classList.add("js");try{var q=location.search;var bot=/bot|crawl|spider|slurp|lighthouse|headless|prerender/i.test(navigator.userAgent);if(q.indexOf("gate=1")>-1||(!bot&&!localStorage.getItem("outlived-entered")))d.dataset.gate="pending"}catch(e){}})()`;
+// Runs before first paint. Decides the entry gate up front, so the page is either covered in --ink
+// (gate pending) or shown normally; the homepage never flashes before the gate. ?gate=1 forces it.
+const GATE_SCRIPT = `(function(){var d=document.documentElement;d.classList.add("js");var force=location.search.indexOf("gate=1")>-1;var bot=/bot|crawl|spider|slurp|lighthouse|headless|prerender/i.test(navigator.userAgent);var seen=false;try{seen=!!sessionStorage.getItem("outlived:entered")}catch(e){}if(force||(!bot&&!seen))d.dataset.gate="pending"})()`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -80,8 +82,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <Footer />
         <HoverGL />
         <PageTransition />
-        <EntryGate />
+        {/* Cursor mounts before the gate and sits above it (z 300 vs 200). */}
         <Cursor />
+        <EntryGate />
         <Toast />
       </body>
     </html>

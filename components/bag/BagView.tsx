@@ -73,12 +73,12 @@ export function BagView() {
   return (
     <div className="gutter grid gap-12 pb-10 md:grid-cols-12 md:gap-8">
       <ul className="border-t border-line md:col-span-8" aria-label="Items in your bag">
-        {lines.map((l) => {
+        {lines.map((l, index) => {
           const issue = issueFor(l.slug, l.size);
           return (
             <li key={l.id} className="grid grid-cols-[88px_1fr] gap-5 border-b border-line py-6 md:grid-cols-[120px_1fr_auto]">
               <Link href={`/vault/${l.slug}`} className="lit block bg-plinth" style={{ aspectRatio: "520 / 968" }}>
-                <Image src={l.snapshot.image} alt={`${l.snapshot.name}, front view`} width={520} height={968} sizes="120px" className="h-full w-full object-cover" />
+                <Image src={l.snapshot.image} alt={`${l.snapshot.name}, front view`} width={520} height={968} sizes="120px" priority={index === 0} className="h-full w-full object-cover" />
               </Link>
               <div className="min-w-0">
                 <Link href={`/vault/${l.slug}`} className="text-[20px] font-bold uppercase leading-none tracking-[-0.02em] hover:underline">

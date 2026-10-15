@@ -186,6 +186,20 @@ html.lenis body {
   mask-composite: intersect;
 }
 
+/* Hero figure: fade only the outer edges of the photo (sides, a sliver at the top,
+   the legs at the bottom), so the backdrop melts into the page while the figure
+   itself stays 100% opaque. Same shape as the edge mask in MonumentScene. */
+.lit-edge {
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, #000 7%, #000 93%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 2.5%, #000 82%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0%, #000 7%, #000 93%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 2.5%, #000 82%, transparent 100%);
+  mask-composite: intersect;
+}
+
 /* Clip reveal: images wipe up from the bottom the first time they enter.
    Only hidden when JS is running, so content never disappears without it. */
 html.js .reveal-clip {
@@ -220,7 +234,7 @@ html.has-cursor textarea {
 .cursor-layer {
   position: fixed;
   inset: 0;
-  z-index: 95;
+  z-index: 300; /* above the entry gate (200) and page transition (150) */
   pointer-events: none;
 }
 .cursor-dot,
@@ -241,7 +255,8 @@ html.has-cursor textarea {
   transition: transform 200ms var(--ease-reveal), opacity 200ms;
 }
 .cursor-dot[data-mode="view"]::before,
-.cursor-dot[data-mode="drag"]::before {
+.cursor-dot[data-mode="drag"]::before,
+.cursor-dot[data-mode="hold"]::before {
   transform: scale(0.5);
 }
 .cursor-dot[data-mode="none"]::before,
@@ -265,7 +280,8 @@ html.has-cursor textarea {
   opacity: 0.6;
 }
 .cursor-ring[data-mode="view"]::before,
-.cursor-ring[data-mode="drag"]::before {
+.cursor-ring[data-mode="drag"]::before,
+.cursor-ring[data-mode="hold"]::before {
   transform: scale(1);
   opacity: 1;
   background: color-mix(in oklab, var(--ink) 35%, transparent);
@@ -284,8 +300,30 @@ html.has-cursor textarea {
   white-space: nowrap;
 }
 .cursor-ring[data-mode="view"] .cursor-label,
-.cursor-ring[data-mode="drag"] .cursor-label {
+.cursor-ring[data-mode="drag"] .cursor-label,
+.cursor-ring[data-mode="hold"] .cursor-label {
   opacity: 1;
+}
+/* Hold progress arc, mirrored from the entry gate's button ring. */
+.cursor-hold {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  margin: -36px 0 0 -36px;
+  transform: rotate(-90deg);
+  opacity: 0;
+  transition: opacity 200ms;
+  overflow: visible;
+}
+.cursor-ring[data-mode="hold"] .cursor-hold {
+  opacity: 1;
+}
+.cursor-hold circle {
+  fill: none;
+  stroke: var(--rust);
+  stroke-width: 2;
+  stroke-dasharray: 220;
+  stroke-dashoffset: calc(220 * (1 - var(--hold, 0)));
 }
 
 /* ── Hotspots ─────────────────────────────────────────────────────── */

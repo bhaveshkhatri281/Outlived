@@ -58,7 +58,7 @@ export function ProductCard({ product: p, scale = "md", sizes, priority = false,
 
   return (
     <article className="group/card">
-      <Link href={href} onClick={onClick} data-cursor="view" data-shared className="block focus-visible:outline-offset-8">
+      <Link href={href} onClick={onClick} data-cursor="view" data-shared className="relative block focus-visible:outline-offset-8">
         <div
           ref={frameRef}
           data-gl-hover
@@ -66,7 +66,8 @@ export function ProductCard({ product: p, scale = "md", sizes, priority = false,
           data-gl-aspect={width / height}
           onPointerMove={onMove}
           onPointerLeave={() => setView(0)}
-          className="reveal-clip lit relative bg-plinth"
+          // Phones: never taller than ~70vh (cover, anchored top so heads stay in frame).
+          className="reveal-clip lit relative bg-plinth max-md:max-h-[70vh]"
           style={{ aspectRatio: CARD_ASPECT }}
         >
           {/* One image set: stacked and scrubbed by the pointer on desktop, a swipe row on touch. */}
@@ -93,13 +94,13 @@ export function ProductCard({ product: p, scale = "md", sizes, priority = false,
               />
             ))}
           </div>
-          <div className="pointer-events-none absolute inset-x-0 bottom-3 hidden justify-center gap-1.5 touch:flex" aria-hidden="true">
+          <div className="pointer-events-none absolute inset-x-0 bottom-3 hidden justify-center gap-1.5 touch:flex max-md:bottom-auto max-md:top-3" aria-hidden="true">
             {VIEWS.map((v, i) => (
               <span key={v} className={`h-1 w-1 rounded-full ${swipe === i ? "bg-bone" : "bg-ash/60"}`} />
             ))}
           </div>
         </div>
-        <p className="mono mt-3 hidden gap-3 pointer-fine:flex" aria-hidden="true">
+        <p className="mono mt-3 hidden gap-3 md:pointer-fine:flex" aria-hidden="true">
           {VIEWS.map((v, i) => (
             <span key={v} className={view === i ? "text-bone" : "text-ash"}>
               {v}
@@ -107,16 +108,20 @@ export function ProductCard({ product: p, scale = "md", sizes, priority = false,
           ))}
         </p>
 
-        <div className="mt-3 flex items-start justify-between gap-4 touch:mt-4">
-          <div className="min-w-0">
-            <Heading className={`${NAME_SIZE[scale]} font-bold uppercase leading-[0.95] tracking-[-0.03em]`}>{p.name}</Heading>
-            <MonoLabel as="p" className="mt-2">
-              {placard(p.code, `Era ${p.era}`, p.category)}
-            </MonoLabel>
+        {/* Phones: overlaid on the bottom of the image (ink gradient keeps it readable), so a
+            product's image, name and price fit in one screen. Desktop: below the image, as before. */}
+        <div className="max-md:pointer-events-none max-md:absolute max-md:inset-x-0 max-md:bottom-0 max-md:bg-linear-to-t max-md:from-ink/85 max-md:via-ink/60 max-md:to-transparent max-md:px-4 max-md:pb-4 max-md:pt-20">
+          <div className="flex items-start justify-between gap-4 md:mt-3">
+            <div className="min-w-0">
+              <Heading className={`${NAME_SIZE[scale]} font-bold uppercase leading-[0.95] tracking-[-0.03em]`}>{p.name}</Heading>
+              <MonoLabel as="p" className="mt-2">
+                {placard(p.code, `Era ${p.era}`, p.category)}
+              </MonoLabel>
+            </div>
+            <p className="mono shrink-0 pt-1 text-[13px] text-bone">{formatINR(p.price)}</p>
           </div>
-          <p className="mono shrink-0 pt-1 text-[13px] text-bone">{formatINR(p.price)}</p>
+          <UnitCounter left={p.unitsLeft} total={p.unitsTotal} suffix="remaining" className="mt-3" />
         </div>
-        <UnitCounter left={p.unitsLeft} total={p.unitsTotal} suffix="remaining" className="mt-3" />
       </Link>
     </article>
   );

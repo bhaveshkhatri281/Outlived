@@ -31,6 +31,9 @@ export function ManifestoStrip() {
         const statements = gsap.utils.toArray<HTMLElement>("[data-statement]", el);
         const splits = statements.map((s) => SplitText.create(s, { type: "lines", mask: "lines", linesClass: "manifesto-line" }));
         split = { revert: () => splits.forEach((sp) => sp.revert()) };
+        // Statements sit close enough (55svh phones / 80svh desktop) and each starts revealing as it
+        // enters, overlapping the previous one, so no viewport is ever empty.
+        const mobile = window.innerWidth < 768;
         splits.forEach((sp, i) => {
           gsap.from(sp.lines, {
             yPercent: 110,
@@ -38,16 +41,17 @@ export function ManifestoStrip() {
             duration: 1.1,
             ease: "expo.out",
             stagger: 0.09,
-            scrollTrigger: { trigger: statements[i], start: "top 78%", once: true },
+            scrollTrigger: { trigger: statements[i], start: mobile ? "top bottom" : "top 95%", once: true },
           });
         });
 
-        // Velocity stretch, Mat Voyce style.
+        // Velocity stretch, Mat Voyce style (capped lower on phones).
+        const maxStretch = mobile ? 0.08 : 0.15;
         const stretch = gsap.quickTo(statements, "scaleY", { duration: 0.35, ease: "power3.out" });
         let target = 1;
         tickerFn = () => {
           const v = Math.abs(getLenis()?.velocity ?? 0);
-          target = Math.max(target * 0.9 + 0.1, 1 + Math.min(v * 0.0045, 0.15));
+          target = Math.max(target * 0.9 + 0.1, 1 + Math.min(v * 0.0045, maxStretch));
           stretch(target);
         };
         gsap.ticker.add(tickerFn);
@@ -66,7 +70,7 @@ export function ManifestoStrip() {
   return (
     <section ref={ref} aria-label="Manifesto" className="relative">
       {LINES.map((l) => (
-        <div key={l.text} className="gutter flex min-h-[100svh] items-center">
+        <div key={l.text} className="gutter flex min-h-[55svh] items-center md:min-h-[80svh]">
           <h2
             data-statement
             className={`w-full origin-bottom text-[15vw] leading-[0.86] md:text-[10.5vw] ${l.align} ${

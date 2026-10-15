@@ -32,6 +32,11 @@ export function loadFlip() {
   return flipPromise;
 }
 
+/** Refreshes ScrollTrigger only if this page already loaded it (never pulls the plugin in by itself). */
+export function refreshScrollTriggerIfLoaded() {
+  scrollTriggerPromise?.then(({ ScrollTrigger }) => ScrollTrigger.refresh());
+}
+
 /**
  * Loads GSAP + ScrollTrigger on demand, so pages without scroll effects
  * never download the plugin. Keeps ScrollTrigger in sync with Lenis.

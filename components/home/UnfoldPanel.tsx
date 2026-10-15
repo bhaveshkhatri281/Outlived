@@ -1,35 +1,51 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MonoLabel } from "@/components/ui/MonoLabel";
 import { useMotionTier } from "@/lib/motion/capability";
 import { useGsap } from "@/lib/motion/useGsap";
 
 const STRIPS = 5;
-const SRC = "/editorial/unfold-soft-tessellation.webp";
-const ASPECT = 1560 / 697;
+// Close-up of Soft Tessellation's folds (built by scripts/make-editorial.ts).
+const SRC = "/editorial/unfold-tessellation.webp";
+const ASPECT = 2160 / 1328;
 
 /**
- * The Unfold: a full-width panorama that starts folded into 5 horizontal
- * strips (alternating rotateX, shaded along the creases) and unfolds flat,
- * scrubbed by scroll. Short and buttery: it's done by the time it's centred.
+ * The Unfold: a full-width close-up of the folds that starts creased into 5
+ * horizontal strips (alternating rotateX ±60°, the inward strips shaded darker)
+ * and flattens as you scroll, scrubbed over ~80vh (~60vh on phones).
  */
 export function UnfoldPanel() {
   const tier = useMotionTier();
   const ref = useRef<HTMLDivElement>(null);
+  // Lazy: the 2160px close-up only loads when the panel is within a screen of the viewport.
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setNear(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "100% 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   useGsap(
     ref,
     ({ gsap }, el) => {
       const strips = gsap.utils.toArray<HTMLElement>("[data-fold]", el);
       const shades = gsap.utils.toArray<HTMLElement>("[data-fold-shade]", el);
-      const st = { trigger: el, start: "top 88%", end: "center 55%", scrub: 0.8 };
-      gsap.fromTo(
-        strips,
-        { rotateX: (i: number) => (i % 2 ? -72 : 72), scaleY: 0.86 },
-        { rotateX: 0, scaleY: 1, ease: "expo.out", scrollTrigger: st },
-      );
-      gsap.fromTo(shades, { opacity: (i: number) => (i % 2 ? 0.75 : 0.35) }, { opacity: 0, ease: "power2.out", scrollTrigger: st });
+      const distance = () => window.innerHeight * (window.innerWidth < 768 ? 0.6 : 0.8);
+      const st = { trigger: el, start: "top 85%", end: () => `+=${distance()}`, scrub: 0.6, invalidateOnRefresh: true };
+      gsap.fromTo(strips, { rotateX: (i: number) => (i % 2 ? -60 : 60) }, { rotateX: 0, ease: "none", scrollTrigger: st });
+      // Inward-facing strips (odd) start much darker, like the shadow side of a crease.
+      gsap.fromTo(shades, { opacity: (i: number) => (i % 2 ? 0.72 : 0.22) }, { opacity: 0, ease: "none", scrollTrigger: st });
     },
     [],
     tier !== "static",
@@ -47,7 +63,7 @@ export function UnfoldPanel() {
               top: `${(i / STRIPS) * 100}%`,
               height: `calc(${100 / STRIPS}% + 1px)`, // 1px overlap hides sub-pixel seams
               transformOrigin: i % 2 ? "50% 0%" : "50% 100%",
-              backgroundImage: `url(${SRC})`,
+              backgroundImage: near ? `url(${SRC})` : undefined,
               backgroundSize: "100% auto",
               backgroundPosition: `0 ${(i / (STRIPS - 1)) * 100}%`,
             }}
@@ -55,13 +71,13 @@ export function UnfoldPanel() {
             <div data-fold-shade className="absolute inset-0 bg-ink opacity-0" />
           </div>
         ))}
-        {/* Soft edges so the panorama melts into the page. */}
+        {/* Soft edges so the close-up melts into the page. */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
-          style={{ background: "radial-gradient(ellipse 70% 80% at 50% 50%, transparent 55%, var(--ink) 100%)" }}
+          style={{ background: "radial-gradient(ellipse 75% 85% at 50% 50%, transparent 60%, var(--ink) 100%)" }}
         />
-        <span role="img" aria-label="Soft Tessellation shown front, side and back: the triangle tucks that fold the fleece." className="sr-only" />
+        <span role="img" aria-label="Close-up of Soft Tessellation: triangle tucks folding the fleece into a diamond relief." className="sr-only" />
       </div>
       <div className="gutter mt-10 grid gap-6 md:grid-cols-12">
         <MonoLabel as="p" className="md:col-span-3">

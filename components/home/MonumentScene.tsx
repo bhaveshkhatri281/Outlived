@@ -8,7 +8,7 @@ import * as THREE from "three";
  * The Monument: the hero figure on a WebGL plane.
  *  - fold shader: diagonal creases displaced in the vertex shader, shaded per facet; unfolds on load
  *  - noise-displacement dissolve between front → side → back, driven by scroll
- *  - a cone of light with drifting dust (instanced points, additive)
+ *  - drifting dust in the light (instanced points, additive); the light cone itself is CSS, behind the type
  *  - depth parallax from the pointer
  * Units: the camera is placed so 1 world unit = 1 CSS pixel, origin at the stage centre.
  */
@@ -70,33 +70,12 @@ void main() {
   float midTurn = step(0.002, uP) * step(uP, 0.998);
   col += vec3(0.93, 0.9, 0.85) * pow(near, 7.0) * 0.16 * midTurn;
   col *= 1.0 + vShade * 0.3;
-  // Melt the photo backdrop into the page (same pool shape as the CSS .lit mask).
-  vec2 q = (uv - vec2(0.5, 0.56)) / vec2(0.62, 0.66);
-  float pool = (1.0 - smoothstep(0.42, 1.06, length(q)))
-    * smoothstep(0.0, 0.08, uv.x) * smoothstep(1.0, 0.92, uv.x)
-    * smoothstep(1.0, 0.91, uv.y) * smoothstep(0.0, 0.18, uv.y);
-  gl_FragColor = vec4(col, pool * uReveal);
+  // Fade only the outer edges of the photo (same shape as the CSS .lit-edge mask): the figure
+  // itself stays fully opaque. uv.y = 1 at the top.
+  float edge = smoothstep(0.0, 0.07, uv.x) * smoothstep(1.0, 0.93, uv.x)
+    * smoothstep(1.0, 0.975, uv.y) * smoothstep(0.0, 0.18, uv.y);
+  gl_FragColor = vec4(col, edge * uReveal);
 }`;
-
-const CONE_FRAG = /* glsl */ `
-uniform float uTime;
-uniform float uApex;
-varying vec2 vUv;
-void main() {
-  float y = 1.0 - vUv.y;
-  float halfW = mix(0.025, 0.36, pow(y, 0.9));
-  float x = abs(vUv.x - uApex);
-  float cone = 1.0 - smoothstep(halfW * 0.25, halfW, x);
-  float fall = smoothstep(0.0, 0.18, y) * (1.0 - 0.55 * smoothstep(0.55, 1.0, y));
-  float breathe = 0.9 + 0.1 * sin(uTime * 0.6);
-  float floorGlow = (1.0 - smoothstep(0.0, 0.22, length((vUv - vec2(uApex, 0.06)) * vec2(1.0, 3.2)))) * 0.6;
-  float a = (cone * fall + floorGlow) * 0.16 * breathe;
-  gl_FragColor = vec4(vec3(0.93, 0.9, 0.84), a);
-}`;
-
-const PLAIN_VERT = /* glsl */ `
-varying vec2 vUv;
-void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
 
 const DUST_VERT = /* glsl */ `
 attribute vec3 aCone; // x: -1..1 across the beam, y: 0..1 down the beam, z: seed
@@ -149,11 +128,15 @@ export default function MonumentScene(props: MonumentProps) {
     <Canvas
       flat
       linear
-      dpr={[1, 1.75]}
+      // Phones: cap the pixel ratio lower; the hero is soft-edged photography, not line art.
+      dpr={[1, window.innerWidth < 768 ? 1.25 : 1.75]}
+      // Render loop stops entirely while the hero is off screen.
       frameloop={props.active ? "always" : "never"}
       gl={{ alpha: true, antialias: false, powerPreference: "high-performance", premultipliedAlpha: false }}
       camera={{ fov: 30, near: 1, far: 10000, position: [0, 0, 1000] }}
-      style={{ position: "absolute", inset: 0 }}
+      // No R3F pointer events are used: let touches and clicks fall through, so a thumb on the hero
+      // scrolls the page (R3F's canvas otherwise sets touch-action: none).
+      style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
       aria-hidden="true"
     >
       <Suspense fallback={null}>
@@ -164,11 +147,10 @@ export default function MonumentScene(props: MonumentProps) {
 }
 
 function Scene({ textures, stageRef, figureRef, progress, pointer, waitForGate, onReady, onSlow }: MonumentProps) {
-  const { size, camera } = useThree();
+  const { size, camera, gl, scene } = useThree();
   const maps = useLoader(THREE.TextureLoader, textures);
   const figure = useRef<THREE.Mesh>(null);
   const light = useRef<THREE.Group>(null);
-  const cone = useRef<THREE.Mesh>(null);
   const rect = useRef({ x: 0, y: 0, w: 1, h: 1 });
   const state = useRef({ fold: waitForGate ? 1 : 0.55, unfoldAt: waitForGate ? -1 : 0, revealAt: 0, ready: false, smooth: 0, frames: [] as number[], judged: false });
 
@@ -197,22 +179,9 @@ function Scene({ textures, stageRef, figureRef, progress, pointer, waitForGate, 
       }),
     [maps],
   );
-  const coneMat = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
-        vertexShader: PLAIN_VERT,
-        fragmentShader: CONE_FRAG,
-        transparent: true,
-        depthWrite: false,
-        depthTest: false,
-        blending: THREE.AdditiveBlending,
-        uniforms: { uTime: { value: 0 }, uApex: { value: 0.5 } },
-      }),
-    [],
-  );
   const mobile = size.width < 768;
   const dust = useMemo(() => {
-    const count = mobile ? 220 : 460;
+    const count = mobile ? 110 : 460; // halved on phones
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
       arr[i * 3] = Math.random() * 2 - 1;
@@ -240,6 +209,18 @@ function Scene({ textures, stageRef, figureRef, progress, pointer, waitForGate, 
     });
     return { geometry: g, material: m };
   }, [mobile]);
+
+  // Upload the three textures and compile every shader up front (this happens behind the entry
+  // gate on a first visit), so the first real frame and the gate opening never stall.
+  // Scheduled a frame later (and cancelled on cleanup) so it never compiles programs that an
+  // immediate cleanup, e.g. React StrictMode's mount/unmount/mount in dev, would then delete.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      maps.forEach((t) => gl.initTexture(t));
+      gl.compile(scene, camera);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [gl, scene, camera, maps]);
 
   // 1 world unit = 1 CSS px.
   useEffect(() => {
@@ -271,7 +252,8 @@ function Scene({ textures, stageRef, figureRef, progress, pointer, waitForGate, 
     if (!waitForGate) return;
     const open = () => (state.current.unfoldAt = performance.now());
     // The gate may already have opened while three.js was still loading.
-    if (document.documentElement.dataset.gate !== "pending") {
+    const gate = document.documentElement.dataset.gate;
+    if (gate !== "pending" && gate !== "up") {
       open();
       return;
     }
@@ -281,10 +263,9 @@ function Scene({ textures, stageRef, figureRef, progress, pointer, waitForGate, 
 
   useEffect(() => () => {
     figureMat.dispose();
-    coneMat.dispose();
     dust.geometry.dispose();
     dust.material.dispose();
-  }, [figureMat, coneMat, dust]);
+  }, [figureMat, dust]);
 
   useFrame((_, delta) => {
     const st = state.current;
@@ -328,14 +309,7 @@ function Scene({ textures, stageRef, figureRef, progress, pointer, waitForGate, 
     }
     if (light.current) light.current.position.set(px * 12, -py * 8, 0);
 
-    // Cone: apex above the figure's head, base wider than the figure.
     const stageH = size.height;
-    if (cone.current) {
-      cone.current.scale.set(size.width * 1.3, stageH, 1);
-      cone.current.position.set(0, 0, -1);
-      coneMat.uniforms.uApex.value = 0.5 + r.x / (size.width * 1.3);
-      coneMat.uniforms.uTime.value = t;
-    }
     const du = dust.material.uniforms;
     du.uTime.value = t;
     du.uTop.value = stageH / 2;
@@ -357,9 +331,6 @@ function Scene({ textures, stageRef, figureRef, progress, pointer, waitForGate, 
   return (
     <>
       <group ref={light}>
-        <mesh ref={cone} renderOrder={2} material={coneMat}>
-          <planeGeometry args={[1, 1]} />
-        </mesh>
         <points geometry={dust.geometry} material={dust.material} renderOrder={3} frustumCulled={false} />
       </group>
       <mesh ref={figure} material={figureMat} renderOrder={1}>

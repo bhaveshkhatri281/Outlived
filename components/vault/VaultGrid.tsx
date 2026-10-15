@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { ProductCard, type CardScale } from "@/components/product/ProductCard";
 import type { Category, EraId, Product } from "@/lib/commerce/types";
 import { getMotionTier } from "@/lib/motion/capability";
@@ -34,6 +34,21 @@ export function VaultGrid({ products }: { products: Product[] }) {
   const [filters, setFilters] = useState<Filters>({ era: "all", type: null });
   const gridRef = useRef<HTMLDivElement>(null);
   const flipState = useRef<unknown>(null);
+  const chipsRef = useRef<HTMLDivElement>(null);
+  const [chipFade, setChipFade] = useState({ left: false, right: false });
+  const updateChipFades = useCallback(() => {
+    const el = chipsRef.current;
+    if (!el) return;
+    const left = el.scrollLeft > 4;
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+    setChipFade((f) => (f.left === left && f.right === right ? f : { left, right }));
+  }, []);
+
+  useEffect(() => {
+    updateChipFades();
+    window.addEventListener("resize", updateChipFades);
+    return () => window.removeEventListener("resize", updateChipFades);
+  }, [updateChipFades]);
 
   // Restore filters from the URL (?era=01&type=hoodie) without a Suspense boundary.
   useEffect(() => {
@@ -120,10 +135,23 @@ export function VaultGrid({ products }: { products: Product[] }) {
   };
   const typeCount = (t: Category) => products.filter((p) => p.category === t && (filters.era === "all" || p.era === filters.era)).length;
 
+  // Edge fades on the chip row: right edge while more chips are hidden off-screen, left once scrolled.
+  const chipMask =
+    chipFade.left || chipFade.right
+      ? `linear-gradient(to right, ${chipFade.left ? "transparent 0, #000 40px" : "#000 0"}, ${chipFade.right ? "#000 calc(100% - 48px), transparent 100%" : "#000 100%"})`
+      : undefined;
+
   return (
     <>
       <div className="sticky top-[var(--header-h)] z-[35] border-y border-line bg-ink/92 backdrop-blur-md">
-        <div className="gutter no-scrollbar flex items-center gap-2 overflow-x-auto py-3" role="toolbar" aria-label="Filter the Vault">
+        <div
+          ref={chipsRef}
+          onScroll={updateChipFades}
+          className="gutter no-scrollbar flex snap-x snap-proximity scroll-px-[var(--gutter)] items-center gap-2 overflow-x-auto py-3"
+          style={{ maskImage: chipMask, WebkitMaskImage: chipMask }}
+          role="toolbar"
+          aria-label="Filter the Vault"
+        >
           {(["all", "01", "02"] as const).map((era) => (
             <Chip key={era} active={filters.era === era} count={counts[era]} onClick={() => apply({ era, type: filters.type })}>
               {era === "all" ? "All" : `Era ${era}`}
@@ -194,7 +222,7 @@ function Chip({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`mono flex h-10 shrink-0 items-center gap-2 border px-4 transition-colors duration-150 ${
+      className={`mono flex h-10 shrink-0 snap-start items-center gap-2 whitespace-nowrap border px-4 transition-colors duration-150 ${
         active ? "border-bone bg-bone text-ink" : "border-line text-bone hover:border-ash"
       } ${small ? "h-9 px-3" : ""}`}
     >
