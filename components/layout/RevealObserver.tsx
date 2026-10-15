@@ -15,6 +15,8 @@ const SAFETY_MS = 1500;
  *  - a safety timeout force-shows anything that entered or passed the viewport and somehow
  *    still isn't revealed 1.5s later.
  * Image loads also trigger a (debounced) ScrollTrigger.refresh(), since layout shifts as they arrive.
+ * Before this mounts, CSS plays the reveals on a timer (html:not(.reveal-armed)), so content
+ * above the fold never waits for hydration.
  */
 export function RevealObserver() {
   const pathname = usePathname();
@@ -69,6 +71,8 @@ export function RevealObserver() {
 
     scan(document);
     sweep();
+    // Hand over from the CSS timer fallback (see .reveal-clip in globals.css) to this observer.
+    document.documentElement.classList.add("reveal-armed");
     const mo = new MutationObserver((muts) => {
       for (const m of muts) m.addedNodes.forEach((n) => n instanceof Element && (n.matches(".reveal-clip") ? io.observe(n) : scan(n)));
       sweep();

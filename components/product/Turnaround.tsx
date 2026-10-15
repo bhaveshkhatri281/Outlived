@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import type { Hotspot } from "@/data/hotspots";
 import { VIEWS, type Product } from "@/lib/commerce/types";
-import { imageSize, viewAlt } from "@/lib/images";
+import { figureImage, imageSize, viewAlt } from "@/lib/images";
 import { useFinePointer, useMotionTier } from "@/lib/motion/capability";
 import { safeStorage } from "@/lib/storage";
 import { markHeroReady } from "@/lib/transition/shared";
@@ -25,6 +25,7 @@ export function Turnaround({ product: p, hotspots }: { product: Product; hotspot
   const tier = useMotionTier();
   const fine = useFinePointer();
   const { width, height } = imageSize(p.slug);
+  const figures = VIEWS.map((v) => figureImage(p, v));
 
   const stageRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -38,7 +39,9 @@ export function Turnaround({ product: p, hotspots }: { product: Product; hotspot
   const [snap, setSnap] = useState(0);
   const [moving, setMoving] = useState(false);
   const [hint, setHint] = useState(false);
-  const [open, setOpen] = useState<number | null>(null);
+  // Open hotspot. Hover / focus open it loosely; a click or tap pins it (so the click that follows
+  // hover or a tap's focus never closes it again), and only a second click unpins and closes it.
+  const [open, setOpen] = useState<{ i: number; pinned: boolean } | null>(null);
 
   const render = useCallback(() => {
     const v = pos.current.v;
@@ -127,7 +130,8 @@ export function Turnaround({ product: p, hotspots }: { product: Product; hotspot
     if (!d || !d.moved) return;
     const w = stageRef.current!.clientWidth;
     const fling = (-d.vel * 1000) / (w * 0.7); // views per second
-    const base = Math.round(pos.current.v);
+    // One drag turns at most one view from where it started (a long drag plus a fling used to skip one).
+    const base = Math.round(d.v);
     const target = Math.round(pos.current.v + fling * 0.22);
     settle(Math.max(base - 1, Math.min(base + 1, target)));
     if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
@@ -155,7 +159,7 @@ export function Turnaround({ product: p, hotspots }: { product: Product; hotspot
     const y = e.clientY - box.top;
     if (x < 0 || y < 0 || x > box.width || y > box.height) return hideLoupe();
     const lens = loupeRef.current;
-    const src = p.images[VIEWS[snap]];
+    const src = figures[snap].src;
     lens.style.opacity = "1";
     lens.style.transform = `translate3d(${x - LOUPE / 2}px, ${y - LOUPE / 2}px, 0)`;
     lens.style.backgroundImage = `url(${src})`;
@@ -183,18 +187,14 @@ export function Turnaround({ product: p, hotspots }: { product: Product; hotspot
         onKeyDown={onKeyDown}
         className="relative mx-auto touch-pan-y select-none outline-offset-8"
       >
-        {/* The light: a soft pool behind the piece. */}
+        {/* The light: a soft pool behind head and shoulders. */}
+        <div aria-hidden="true" className="figure-light -inset-x-[30%] -top-[8%] bottom-0 -z-10" />
         <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -inset-x-[30%] -top-[8%] bottom-[10%] -z-10"
-          style={{ background: "radial-gradient(ellipse 50% 60% at 50% 38%, color-mix(in oklab, var(--bone) 7%, transparent), transparent 70%)" }}
-        />
-        {/* Blended frame (feathers on all edges); the photo box (boxRef) sits inset inside it. */}
-        <div
-          className="photo-blend relative mx-auto max-h-[72svh] md:max-h-[calc(100svh-var(--header-h)-120px)]"
+          className="relative mx-auto max-h-[72svh] md:max-h-[calc(100svh-var(--header-h)-120px)]"
           style={{ aspectRatio: `${width} / ${height}`, height: "min(1200px, 100svh)" }}
         >
-        <div ref={boxRef} className="photo-blend-inner">
+        <div aria-hidden="true" className="figure-ground" />
+        <div ref={boxRef} className="absolute inset-0">
           {VIEWS.map((v, i) => (
             <div
               key={v}
@@ -202,17 +202,22 @@ export function Turnaround({ product: p, hotspots }: { product: Product; hotspot
                 layers.current[i] = el;
               }}
               data-vt-hero={i === 0 ? "" : undefined}
-              className="absolute inset-0 will-change-transform"
+              className={`${figures[i].mask} absolute inset-0 will-change-transform`}
               style={{ opacity: i === 0 ? 1 : 0 }}
             >
               <Image
                 ref={i === 0 ? frontImg : undefined}
-                src={p.images[v]}
+                src={figures[i].src}
                 alt={viewAlt(p, v)}
                 width={width}
                 height={height}
                 sizes="(min-width: 768px) 440px, 80vw"
-                priority={i === 0}
+                // Front view: eager, but no <link rel=preload> (next/image priority; React 19 adds one too for
+                // any eager <img> unless fetchPriority is "low"). Coming from a Vault card, the browser already
+                // holds a larger copy and picks it from srcset, so the preload was wasted (console warning).
+                // The <img> is in the server HTML and Chrome raises in-viewport images after layout.
+                loading={i === 0 ? "eager" : undefined}
+                fetchPriority={i === 0 ? "low" : undefined}
                 draggable={false}
                 className="h-full w-full object-cover"
               />
@@ -220,7 +225,7 @@ export function Turnaround({ product: p, hotspots }: { product: Product; hotspot
           ))}
 
           {visibleSpots.map((h, i) => {
-            const isOpen = open === i;
+            const isOpen = open?.i === i;
             const flip = h.x > 58;
             return (
               <div key={`${h.view}-${i}`} className="absolute z-20" style={{ left: `${h.x}%`, top: `${h.y}%` }} data-hotspot>
@@ -228,11 +233,11 @@ export function Turnaround({ product: p, hotspots }: { product: Product; hotspot
                   type="button"
                   aria-expanded={isOpen}
                   aria-label={`Construction detail: ${h.title}`}
-                  onClick={() => setOpen(isOpen ? null : i)}
-                  onMouseEnter={() => setOpen(i)}
-                  onMouseLeave={() => setOpen((o) => (o === i ? null : o))}
-                  onFocus={() => setOpen(i)}
-                  onBlur={() => setOpen((o) => (o === i ? null : o))}
+                  onClick={() => setOpen(isOpen && open.pinned ? null : { i, pinned: true })}
+                  onMouseEnter={() => setOpen((o) => (o?.i === i ? o : { i, pinned: false }))}
+                  onMouseLeave={() => setOpen((o) => (o?.i === i && !o.pinned ? null : o))}
+                  onFocus={() => setOpen((o) => (o?.i === i ? o : { i, pinned: false }))}
+                  onBlur={() => setOpen((o) => (o?.i === i ? null : o))}
                   className="relative -ml-5 -mt-5 grid h-10 w-10 place-items-center motion-safe:animate-[toast-in_400ms_var(--ease-reveal)]"
                 >
                   <span className="hotspot-ring absolute h-3 w-3 rounded-full border border-rust" aria-hidden="true" />
@@ -258,7 +263,7 @@ export function Turnaround({ product: p, hotspots }: { product: Product; hotspot
             <div
               ref={loupeRef}
               aria-hidden="true"
-              className="pointer-events-none absolute left-0 top-0 z-30 rounded-full border border-bone/70 bg-plinth bg-no-repeat opacity-0 transition-opacity duration-150"
+              className="pointer-events-none absolute left-0 top-0 z-30 rounded-full border border-bone/70 bg-ink bg-no-repeat opacity-0 transition-opacity duration-150"
               style={{ width: LOUPE, height: LOUPE }}
             >
               <span className="mono absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-bone">2.5× · drag</span>

@@ -38,6 +38,7 @@ uniform sampler2D uB;
 uniform float uP;
 uniform float uReveal;
 uniform float uTime;
+uniform float uCut;
 varying vec2 vUv;
 varying float vShade;
 
@@ -64,18 +65,22 @@ void main() {
   // A little displacement around the eroding edge.
   float near = 1.0 - smoothstep(0.0, w * 1.6, abs(n - p));
   vec2 duv = uv + vec2(near * 0.012 * sin(uv.y * 60.0 + uTime), 0.0);
-  vec3 a = texture2D(uA, duv).rgb;
-  vec3 b = texture2D(uB, duv).rgb;
-  vec3 col = mix(a, b, 1.0 - e);
+  // Textures are premultiplied on upload (clean cutout edges under filtering); unpremultiply after the mix.
+  vec4 c = mix(texture2D(uA, duv), texture2D(uB, duv), 1.0 - e);
+  float alpha = c.a;
+  vec3 col = c.rgb / max(alpha, 0.0001);
   float midTurn = step(0.002, uP) * step(uP, 0.998);
   col += vec3(0.93, 0.9, 0.85) * pow(near, 7.0) * 0.16 * midTurn;
   col *= 1.0 + vShade * 0.3;
-  // Same edge feather as the CSS .photo-blend-gl / .photo-blend-inner masks (lib/photo-blend.ts):
-  // the photo melts into its blended frame; the figure itself stays fully opaque.
+  // Edges match the DOM layers: a cutout only fades its cut-off bottom 12% (CSS .figure-fade);
+  // an original photo (no cutout) gets the soft feather of CSS .lit.
   float t = 1.0 - uv.y;
-  float edge = clamp(uv.x / 0.073, 0.0, 1.0) * clamp((1.0 - uv.x) / 0.073, 0.0, 1.0)
-    * clamp(t / 0.037, 0.0, 1.0) * clamp((1.0 - t) / 0.171, 0.0, 1.0);
-  gl_FragColor = vec4(col, edge * uReveal);
+  float fade = 1.0 - smoothstep(0.88, 1.0, t);
+  vec2 q = (uv - vec2(0.5, 0.56)) / vec2(0.62, 0.66);
+  float lit = (1.0 - smoothstep(0.58, 1.0, length(q)))
+    * clamp(uv.x / 0.08, 0.0, 1.0) * clamp((1.0 - uv.x) / 0.08, 0.0, 1.0)
+    * clamp(t / 0.09, 0.0, 1.0) * clamp((1.0 - t) / 0.18, 0.0, 1.0);
+  gl_FragColor = vec4(col, alpha * mix(lit, fade, uCut) * uReveal);
 }`;
 
 const DUST_VERT = /* glsl */ `
@@ -111,6 +116,8 @@ void main() {
 
 export type MonumentProps = {
   textures: [string, string, string];
+  /** The textures are transparent cutouts (not photos on their backdrop). */
+  cutout: boolean;
   stageRef: RefObject<HTMLElement | null>;
   figureRef: RefObject<HTMLElement | null>;
   /** 0 = front, 1 = side, 2 = back (continuous). */
@@ -133,7 +140,7 @@ export default function MonumentScene(props: MonumentProps) {
       dpr={[1, window.innerWidth < 768 ? 1.25 : 1.75]}
       // Render loop stops entirely while the hero is off screen.
       frameloop={props.active ? "always" : "never"}
-      gl={{ alpha: true, antialias: false, powerPreference: "high-performance", premultipliedAlpha: false }}
+      gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
       camera={{ fov: 30, near: 1, far: 10000, position: [0, 0, 1000] }}
       // No R3F pointer events are used: let touches and clicks fall through, so a thumb on the hero
       // scrolls the page (R3F's canvas otherwise sets touch-action: none).
@@ -147,7 +154,7 @@ export default function MonumentScene(props: MonumentProps) {
   );
 }
 
-function Scene({ textures, stageRef, figureRef, progress, pointer, waitForGate, onReady, onSlow }: MonumentProps) {
+function Scene({ textures, cutout, stageRef, figureRef, progress, pointer, waitForGate, onReady, onSlow }: MonumentProps) {
   const { size, camera, gl, scene } = useThree();
   const maps = useLoader(THREE.TextureLoader, textures);
   const figure = useRef<THREE.Mesh>(null);
@@ -159,6 +166,7 @@ function Scene({ textures, stageRef, figureRef, progress, pointer, waitForGate, 
     t.colorSpace = THREE.NoColorSpace;
     t.minFilter = THREE.LinearFilter;
     t.generateMipmaps = false;
+    t.premultiplyAlpha = true;
   });
 
   const figureMat = useMemo(
@@ -175,10 +183,11 @@ function Scene({ textures, stageRef, figureRef, progress, pointer, waitForGate, 
           uFold: { value: 1 },
           uReveal: { value: 0 },
           uTime: { value: 0 },
+          uCut: { value: cutout ? 1 : 0 },
           uSize: { value: new THREE.Vector2(1, 1) },
         },
       }),
-    [maps],
+    [maps, cutout],
   );
   const mobile = size.width < 768;
   const dust = useMemo(() => {

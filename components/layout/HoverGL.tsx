@@ -22,7 +22,7 @@ export function HoverGL() {
     <canvas
       ref={ref}
       aria-hidden="true"
-      className="photo-blend-gl pointer-events-none fixed left-0 top-0 z-[30] opacity-0 transition-opacity duration-150"
+      className="pointer-events-none fixed left-0 top-0 z-[30] opacity-0 transition-opacity duration-150"
     />
   );
 }

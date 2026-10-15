@@ -7,7 +7,7 @@ import { MonoLabel, placard } from "@/components/ui/MonoLabel";
 import { UnitCounter } from "@/components/product/UnitCounter";
 import { formatINR } from "@/lib/commerce/format";
 import type { Era, Product } from "@/lib/commerce/types";
-import { viewAlt } from "@/lib/images";
+import { figureImage, viewAlt } from "@/lib/images";
 import { useMotionTier } from "@/lib/motion/capability";
 import { useGsap } from "@/lib/motion/useGsap";
 import { playFold } from "@/lib/sound";
@@ -205,17 +205,20 @@ export function EraChapter({ era, featured, total }: { era: Era; featured: Produ
 
 function PageContent({ product: p, index, count, compact = false }: { product: Product; index: number; count: number; compact?: boolean }) {
   const href = `/vault/${p.slug}`;
+  const front = figureImage(p, "front");
   return (
     <>
       <Link
         href={href}
         data-cursor="view"
-        className={`photo-blend relative block ${compact ? "aspect-[520/640]" : "col-span-6 h-full"}`}
+        className={`relative block ${compact ? "aspect-[520/640]" : "col-span-6 h-full"}`}
         aria-label={`${p.name}, view piece`}
       >
-        <div data-gl-hover data-gl-src={p.images.front} data-gl-aspect={520 / 968} className="photo-blend-inner">
+        <div aria-hidden="true" className="figure-light" />
+        <div aria-hidden="true" className="figure-ground" />
+        <div data-gl-hover data-gl-src={front.src} data-gl-aspect={520 / 968} className={`${front.mask} absolute inset-x-0 bottom-0 top-[6%]`}>
           <Image
-            src={p.images.front}
+            src={front.src}
             alt={viewAlt(p, "front")}
             fill
             sizes={compact ? "80vw" : "45vw"}

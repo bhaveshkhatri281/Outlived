@@ -7,7 +7,7 @@ import { useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { MonoLabel, placard } from "@/components/ui/MonoLabel";
 import { formatINR } from "@/lib/commerce/format";
 import { VIEWS, type Product } from "@/lib/commerce/types";
-import { imageSize, viewAlt } from "@/lib/images";
+import { figureImage, imageSize, viewAlt } from "@/lib/images";
 import { navigateShared } from "@/lib/transition/shared";
 import { UnitCounter } from "./UnitCounter";
 
@@ -43,6 +43,7 @@ export function ProductCard({ product: p, scale = "md", sizes, priority = false,
   const frameRef = useRef<HTMLDivElement>(null);
   const href = `/vault/${p.slug}`;
   const { width, height } = imageSize(p.slug);
+  const figures = VIEWS.map((v) => figureImage(p, v));
 
   const onMove = (e: PointerEvent<HTMLDivElement>) => {
     if (e.pointerType !== "mouse") return;
@@ -62,12 +63,20 @@ export function ProductCard({ product: p, scale = "md", sizes, priority = false,
         <div
           onPointerMove={onMove}
           onPointerLeave={() => setView(0)}
-          // Blended frame (feathers on all edges); phones: never taller than ~70vh.
-          className="reveal-clip photo-blend relative max-md:max-h-[70vh]"
+          // Phones: never taller than ~70vh.
+          className="reveal-clip relative max-md:max-h-[70vh]"
           style={{ aspectRatio: CARD_ASPECT }}
         >
-          {/* The photo box, inset in the frame (also the hover-canvas and shared-transition target). */}
-          <div ref={frameRef} data-gl-hover data-gl-src={p.images[VIEWS[view]]} data-gl-aspect={width / height} className="photo-blend-inner">
+          <div aria-hidden="true" className="figure-light" />
+          <div aria-hidden="true" className="figure-ground" />
+          {/* The figure, with headroom for the light above it (also the hover-canvas and shared-transition target). */}
+          <div
+            ref={frameRef}
+            data-gl-hover
+            data-gl-src={figures[view].src}
+            data-gl-aspect={width / height}
+            className={`${figures[0].mask} absolute inset-x-0 bottom-0 top-[6%]`}
+          >
           {/* One image set: stacked and scrubbed by the pointer on desktop, a swipe row on touch. */}
           <div
             className="gl-hide no-scrollbar absolute inset-0 touch:flex touch:snap-x touch:snap-mandatory touch:overflow-x-auto"
@@ -79,13 +88,18 @@ export function ProductCard({ product: p, scale = "md", sizes, priority = false,
             {VIEWS.map((v, i) => (
               <Image
                 key={v}
-                src={p.images[v]}
+                src={figures[i].src}
                 alt={viewAlt(p, v)}
                 width={width}
                 height={height}
                 sizes={sizes}
-                priority={priority && i === 0}
-                loading={priority && i === 0 ? undefined : "lazy"}
+                // First card: eager, but without a <link rel=preload>. React 19 adds one for every eager
+                // <img> unless fetchPriority is "low", and on desktop (first cards at the fold) Chrome flagged it
+                // as unused when the image was already cached from the homepage. The <img> is in the server
+                // HTML, so the preload scanner finds it at once, and Chrome raises in-viewport images to high
+                // priority after layout, so the phone LCP card still loads first.
+                loading={priority && i === 0 ? "eager" : "lazy"}
+                fetchPriority={priority && i === 0 ? "low" : undefined}
                 className={`absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-200 touch:relative touch:shrink-0 touch:snap-center touch:opacity-100 ${
                   view === i ? "opacity-100" : "opacity-0"
                 }`}

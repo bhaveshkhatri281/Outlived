@@ -6,7 +6,7 @@ import { KineticTitle } from "@/components/ui/KineticTitle";
 import { MonoLabel, placard } from "@/components/ui/MonoLabel";
 import { commerce } from "@/lib/commerce";
 import type { Product, ProductView } from "@/lib/commerce/types";
-import { imageSize, viewAlt } from "@/lib/images";
+import { figureImage, imageSize, viewAlt } from "@/lib/images";
 
 export const metadata: Metadata = {
   title: "Evidence",
@@ -80,15 +80,18 @@ export default async function EvidencePage() {
   );
 }
 
-/** One exhibit: a single view, cropped as a film still (4:5 phones, 3:2 desktop), in the blended frame. */
+/** One exhibit: a single view, cropped as a film still (4:5 phones, 3:2 desktop), standing in its own light. */
 function Still({ product: p, view, n, priority }: { product: Product; view: ProductView; n: number; priority: boolean }) {
   const { width, height } = imageSize(p.slug);
+  const fig = figureImage(p, view);
   return (
     <figure className="md:mx-auto md:w-[64vw]">
-      <Link href={`/vault/${p.slug}`} data-cursor="view" className="reveal-clip photo-blend relative block aspect-[4/5] md:aspect-[3/2]">
-        <div data-gl-hover data-gl-src={p.images[view]} data-gl-aspect={width / height} className="photo-blend-inner">
+      <Link href={`/vault/${p.slug}`} data-cursor="view" className="reveal-clip relative block aspect-[4/5] md:aspect-[3/2]">
+        <div aria-hidden="true" className="figure-light" />
+        <div aria-hidden="true" className="figure-ground" />
+        <div data-gl-hover data-gl-src={fig.src} data-gl-aspect={width / height} className={`${fig.mask} absolute inset-x-0 bottom-0 top-[12%]`}>
           <Image
-            src={p.images[view]}
+            src={fig.src}
             alt={viewAlt(p, view)}
             fill
             sizes="(min-width: 768px) 64vw, 100vw"

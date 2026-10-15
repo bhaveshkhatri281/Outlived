@@ -2,7 +2,8 @@
  * One shared WebGL canvas that sits over whichever product image is hovered
  * (`[data-gl-hover]`, current image URL in `data-gl-src`) and redraws it with
  * a liquid displacement that follows the cursor plus a slight RGB split
- * toward the edges. Raw WebGL1, no dependencies: ~1 draw call per frame, and
+ * toward the edges. Keeps the image's alpha (product cutouts) and copies the
+ * hovered element's CSS mask, so its edges match the DOM image. Raw WebGL1, no dependencies: ~1 draw call per frame, and
  * the loop stops entirely when nothing is hovered.
  */
 
@@ -26,8 +27,10 @@ uniform float uAspect;
 uniform vec2 uCover; // object-fit: cover, anchored top
 varying vec2 vUv;
 
-vec3 sampleRGB(sampler2D t, vec2 uv, float s) {
-  return vec3(texture2D(t, uv + vec2(s, 0.0)).r, texture2D(t, uv).g, texture2D(t, uv - vec2(s, 0.0)).b);
+// Premultiplied RGBA with the red and blue channels pulled apart.
+vec4 sampleRGB(sampler2D t, vec2 uv, float s) {
+  vec4 c = texture2D(t, uv);
+  return vec4(texture2D(t, uv + vec2(s, 0.0)).r, c.g, texture2D(t, uv - vec2(s, 0.0)).b, c.a);
 }
 
 void main() {
@@ -42,14 +45,14 @@ void main() {
   float edge = smoothstep(0.18, 0.5, max(abs(vUv.x - 0.5), abs(vUv.y - 0.5)));
   float split = (0.0015 + 0.006 * edge + 0.004 * fall) * uHover;
   uv = vec2(0.5 + (uv.x - 0.5) * uCover.x, uv.y * uCover.y);
-  vec3 col = mix(sampleRGB(uA, uv, split), sampleRGB(uB, uv, split), uMix);
-  gl_FragColor = vec4(col, 1.0);
+  vec4 col = mix(sampleRGB(uA, uv, split), sampleRGB(uB, uv, split), uMix);
+  gl_FragColor = vec4(min(col.rgb, vec3(col.a)), col.a);
 }`;
 
 type Tex = { tex: WebGLTexture; ready: boolean };
 
 export function createHoverGL(canvas: HTMLCanvasElement) {
-  const gl = canvas.getContext("webgl", { alpha: true, antialias: false, premultipliedAlpha: false });
+  const gl = canvas.getContext("webgl", { alpha: true, antialias: false, premultipliedAlpha: true });
   if (!gl) return { destroy() {} };
 
   const compile = (type: number, src: string) => {
@@ -73,6 +76,7 @@ export function createHoverGL(canvas: HTMLCanvasElement) {
   const uA = u("uA"), uB = u("uB"), uMix = u("uMix"), uHover = u("uHover"), uTime = u("uTime"), uMouse = u("uMouse"), uAspect = u("uAspect"), uCover = u("uCover");
   gl.uniform1i(uA, 0);
   gl.uniform1i(uB, 1);
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
   const cache = new Map<string, Tex>();
   const texture = (src: string): Tex => {
@@ -166,6 +170,8 @@ export function createHoverGL(canvas: HTMLCanvasElement) {
     if (el !== target && el) {
       if (target) delete target.dataset.glActive;
       target = el;
+      const mask = getComputedStyle(el).maskImage;
+      canvas.style.maskImage = canvas.style.webkitMaskImage = mask && mask !== "none" ? mask : "";
       srcA = srcB = el.dataset.glSrc ?? "";
       mix = 1;
       hover = 0;

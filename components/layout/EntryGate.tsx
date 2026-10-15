@@ -8,7 +8,8 @@ import { prefersReducedMotion } from "@/lib/motion/reduced-motion";
 import { playFold } from "@/lib/sound";
 import { safeSession } from "@/lib/storage";
 
-/** Once per visit: a new tab (or new visit) sees the gate; reloads and page changes in the same tab don't. */
+/** Once per visit: a new tab (or new visit) on the homepage sees the gate; reloads, page changes in the
+ *  same tab, and deep links straight to another page don't. */
 export const GATE_KEY = "outlived:entered";
 const LINE = "MOST THINGS DON'T LAST.";
 const GLYPHS = "▓▒░#%&/\\|<>_=+*:;01";
@@ -37,7 +38,7 @@ const PANELS = [
  * origami: four triangular panels hinge back on their outer edges.
  *
  * The inline script in <head> sets html[data-gate="pending"] for first-time
- * human visitors, so the page is covered from the first paint.
+ * human visitors landing on the homepage, so it is covered from the first paint.
  */
 export function EntryGate() {
   const [phase, setPhase] = useState<"off" | "on" | "folding">("off");

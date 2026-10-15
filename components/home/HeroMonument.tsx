@@ -8,8 +8,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { MonoLabel, placard } from "@/components/ui/MonoLabel";
 import { formatINR } from "@/lib/commerce/format";
 import { VIEWS, type Product } from "@/lib/commerce/types";
-import { imageSize, viewAlt } from "@/lib/images";
-import { FRAME_AROUND_PHOTO } from "@/lib/photo-blend";
+import { figureImage, imageSize, viewAlt } from "@/lib/images";
 import { downgradeTier, useFinePointer, useMotionTier } from "@/lib/motion/capability";
 
 const MonumentScene = dynamic(() => import("./MonumentScene"), { ssr: false });
@@ -24,6 +23,7 @@ export function HeroMonument({ product: p }: { product: Product }) {
   const tier = useMotionTier();
   const fine = useFinePointer();
   const { width, height } = imageSize(p.slug);
+  const figures = VIEWS.map((v) => figureImage(p, v));
 
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -44,7 +44,9 @@ export function HeroMonument({ product: p }: { product: Product }) {
   const useGL = tier === "full" && mountGL;
 
   // Mount WebGL on the first sign of a person (pointer, scroll, key, touch, or the entry ritual)
-  // or after ~3.5s idle, so the three.js download never competes with first paint and interactivity.
+  // or, with a mouse, after ~3.5s idle, so the three.js download never competes with first paint and
+  // interactivity. Touch phones skip the idle timer: ~900 KB of 3D is only fetched once someone
+  // actually touches or scrolls, never for a visit that bounces (the CSS crossfade covers until then).
   useEffect(() => {
     if (tier !== "full") return;
     const events = ["pointermove", "pointerdown", "wheel", "touchstart", "keydown", "scroll"] as const;
@@ -56,7 +58,7 @@ export function HeroMonument({ product: p }: { product: Product }) {
       setMountGL(true);
     };
     const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
-    const timer = setTimeout(() => (w.requestIdleCallback ? w.requestIdleCallback(go, { timeout: 1500 }) : go()), 3500);
+    const timer = fine ? setTimeout(() => (w.requestIdleCallback ? w.requestIdleCallback(go, { timeout: 1500 }) : go()), 3500) : undefined;
     events.forEach((e) => window.addEventListener(e, go, { passive: true, once: true }));
     // Behind the entry gate: mount (and compile) right away, so nothing initialises when the gate opens.
     if (["pending", "up"].includes(document.documentElement.dataset.gate ?? "")) go();
@@ -65,7 +67,7 @@ export function HeroMonument({ product: p }: { product: Product }) {
       events.forEach((e) => window.removeEventListener(e, go));
     }
     return cleanup;
-  }, [tier]);
+  }, [tier, fine]);
 
   // Pause rendering when the hero is off screen.
   useEffect(() => {
@@ -164,20 +166,20 @@ export function HeroMonument({ product: p }: { product: Product }) {
           className="absolute left-1/2 top-[9svh] h-[70svh] -translate-x-1/2 md:top-[8svh] md:h-[92svh]"
           style={{ aspectRatio: `${width} / ${height}` }}
         >
-          {/* Blended frame around the photo box: feathers on all four edges, outside the figure. Stays
-              visible under the WebGL plane, which applies the same feather from inside. */}
-          <div aria-hidden="true" className="photo-blend absolute" style={FRAME_AROUND_PHOTO} />
+          {/* Light behind head and shoulders, ground shadow under the fade. Both stay visible under the WebGL plane. */}
+          <div aria-hidden="true" className="figure-light -inset-x-[45%] -top-[12%] bottom-0" />
+          <div aria-hidden="true" className="figure-ground" />
           {VIEWS.map((v, i) => (
             <div
               key={v}
               ref={(el) => {
                 layers.current[i] = el;
               }}
-              className="photo-blend-gl absolute inset-0 bg-plinth will-change-[opacity]"
+              className={`${figures[i].mask} absolute inset-0 will-change-[opacity]`}
               style={{ opacity: i === 0 ? 1 : 0, visibility: hideDom ? "hidden" : "visible" }}
             >
               <Image
-                src={p.images[v]}
+                src={figures[i].src}
                 alt={i === 0 ? viewAlt(p, v) : ""}
                 width={width}
                 height={height}
@@ -194,7 +196,8 @@ export function HeroMonument({ product: p }: { product: Product }) {
         {useGL && (
           <div className="absolute inset-0">
             <MonumentScene
-              textures={[p.images.front, p.images.side, p.images.back]}
+              textures={[figures[0].src, figures[1].src, figures[2].src]}
+              cutout={figures.every((f) => f.cut)}
               stageRef={stageRef}
               figureRef={figureRef}
               progress={progress}

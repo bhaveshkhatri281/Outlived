@@ -13,7 +13,9 @@
     "editorial": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning scripts/make-editorial.ts",
     "qa": "node scripts/qa/capture.mjs",
     "qa:lighthouse": "node scripts/qa/lighthouse.mjs",
-    "qa:report": "node scripts/qa/report.mjs"
+    "qa:report": "node scripts/qa/report.mjs",
+    "cutout": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning scripts/cutout-products.ts",
+    "cutout:sample": "npm run cutout -- --sample 2"
   },
   "dependencies": {
     "@react-three/fiber": "^9.8.1",

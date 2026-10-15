@@ -1,0 +1,117 @@
+{
+  "air-bell": [
+    "front",
+    "side",
+    "back"
+  ],
+  "air-bloom": [
+    "front",
+    "side",
+    "back"
+  ],
+  "book-jacket-wrap": [
+    "front",
+    "side",
+    "back"
+  ],
+  "capillary-flow": [
+    "front",
+    "side",
+    "back"
+  ],
+  "concertina-saddle": [
+    "front",
+    "side",
+    "back"
+  ],
+  "concertina-shoulders": [
+    "front",
+    "side",
+    "back"
+  ],
+  "envelope-basin": [
+    "front",
+    "side",
+    "back"
+  ],
+  "folded-apron": [
+    "front",
+    "side",
+    "back"
+  ],
+  "folded-saddle": [
+    "front",
+    "side",
+    "back"
+  ],
+  "loft-ribbon": [
+    "front",
+    "side",
+    "back"
+  ],
+  "mercury-tide": [
+    "front",
+    "side",
+    "back"
+  ],
+  "mesh-cocoon": [
+    "front",
+    "side",
+    "back"
+  ],
+  "miter-stack": [
+    "front",
+    "side",
+    "back"
+  ],
+  "overfold-pavement": [
+    "front",
+    "side",
+    "back"
+  ],
+  "parallel-turn": [
+    "front",
+    "side",
+    "back"
+  ],
+  "parchment-gusset": [
+    "front",
+    "side",
+    "back"
+  ],
+  "pleat-exchange": [
+    "front",
+    "side",
+    "back"
+  ],
+  "pleated-hem-wings": [
+    "front",
+    "side",
+    "back"
+  ],
+  "screen-lantern": [
+    "front",
+    "side",
+    "back"
+  ],
+  "soft-tessellation": [
+    "front",
+    "side",
+    "back"
+  ],
+  "stepped-shelf": [
+    "front",
+    "side",
+    "back"
+  ],
+  "turned-leaf": [
+    "front",
+    "side",
+    "back"
+  ],
+  "turned-page-sleeves": [
+    "front",
+    "side",
+    "back"
+  ]
+}

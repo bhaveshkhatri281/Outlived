@@ -206,42 +206,45 @@ html.lenis body {
   mask-composite: intersect;
 }
 
-/* ── Blended photo (shared) ───────────────────────────────────────────
-   The frame (backdrop-coloured) feathers on all four edges: 15% left,
-   right and top, 20% bottom. The photo sits inset inside it (12% top,
-   9% sides, 6% bottom), so the feather lands on margin, never on the head
-   or sleeves. Keep in sync with lib/photo-blend.ts. */
-.photo-blend {
-  background: var(--plinth);
-  -webkit-mask-image:
-    linear-gradient(to right, transparent 0%, #000 15%, #000 85%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, #000 15%, #000 80%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(to right, transparent 0%, #000 15%, #000 85%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, #000 15%, #000 80%, transparent 100%);
-  mask-composite: intersect;
-}
-.photo-blend-inner {
+/* ── Figure on the page (shared) ──────────────────────────────────────
+   Product views are cut out of their backdrop (scripts/cutout-products.ts),
+   so the figure stands straight on --ink. Behind it: .figure-light, a soft
+   pool of bone light centred ~33% down (behind head and shoulders, so the
+   black balaclava and gloves separate from the page); under it:
+   .figure-ground, a faint blurred shadow. Both fade to nothing before their
+   box edge (closest-side), so there is no rectangle anywhere.
+   .figure-fade melts the cut-off jeans into the floor (bottom 12% only).
+   A view with no cutout falls back to the original photo with .lit.
+   In the components layer so utilities (insets) can resize the light. */
+@layer components {
+.figure-light {
   position: absolute;
-  top: 12%;
-  left: 9%;
-  right: 9%;
-  bottom: 6%;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side at 50% 33%,
+    color-mix(in oklab, var(--bone) 7%, transparent) 0%,
+    color-mix(in oklab, var(--bone) 6%, transparent) 35%,
+    color-mix(in oklab, var(--bone) 3.5%, transparent) 65%,
+    color-mix(in oklab, var(--bone) 1.2%, transparent) 85%,
+    transparent 100%
+  );
 }
-/* The photo box also melts its own edges into the frame, over the photo's own backdrop band
-   (above the head, beside the sleeves) and the cut-off legs at the bottom. Used on the photo
-   box, the hover canvas and (same numbers) the WebGL hero plane. */
-.photo-blend-inner,
-.photo-blend-gl {
-  -webkit-mask-image:
-    linear-gradient(to right, transparent 0%, #000 7.3%, #000 92.7%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, #000 3.7%, #000 82.9%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(to right, transparent 0%, #000 7.3%, #000 92.7%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, #000 3.7%, #000 82.9%, transparent 100%);
-  mask-composite: intersect;
+.figure-ground {
+  position: absolute;
+  left: 50%;
+  bottom: 2%;
+  width: 64%;
+  height: 7%;
+  translate: -50% 0;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.25), rgb(0 0 0 / 0.12) 55%, transparent 100%);
+  filter: blur(6px);
+}
+.figure-fade {
+  -webkit-mask-image: linear-gradient(to bottom, #000 88%, rgb(0 0 0 / 0.55) 93%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 88%, rgb(0 0 0 / 0.55) 93%, transparent 100%);
+}
 }
 
 /* Clip reveal: images wipe up from the bottom the first time they enter.
@@ -257,6 +260,21 @@ html.js .reveal-clip.is-in {
 html.js .reveal-clip.reveal-instant {
   transition: none;
 }
+/* Until RevealObserver has hydrated and adds html.reveal-armed (slow phone, dev compile), every
+   reveal plays by itself on a timer, so above-the-fold content never waits for JavaScript.
+   Once armed, the observer takes over: in-view elements are already revealed, the rest
+   (below the fold, unseen) go back to hidden and reveal on scroll as usual. */
+html.js:not(.reveal-armed) .reveal-clip {
+  animation: reveal-auto 700ms var(--ease-reveal) 100ms both;
+}
+@keyframes reveal-auto {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   html.js .reveal-clip {
     clip-path: none;
@@ -265,6 +283,17 @@ html.js .reveal-clip.reveal-instant {
   }
   html.js .reveal-clip.is-in {
     opacity: 1;
+  }
+  html.js:not(.reveal-armed) .reveal-clip {
+    animation-name: reveal-auto-fade;
+  }
+  @keyframes reveal-auto-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 }
 
