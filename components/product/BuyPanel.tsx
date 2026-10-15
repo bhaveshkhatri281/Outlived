@@ -44,9 +44,9 @@ export function BuyPanel({ product: p, children }: { product: Product; children?
   };
 
   return (
-    <div>
+    <div className="@container">
       <MonoLabel as="p">{placard(p.code, `Era ${p.era}`, p.category)}</MonoLabel>
-      <h1 className="mt-4 text-[44px] font-extrabold uppercase leading-[0.86] tracking-[-0.045em] md:text-[clamp(48px,4.6vw,76px)]">
+      <h1 className="mt-4 text-[44px] font-extrabold uppercase leading-[0.86] tracking-[-0.045em] break-normal [hyphens:none] md:text-[clamp(30px,min(15cqi,4.6vw),76px)]">
         {p.name}
       </h1>
       <div className="mt-5 flex items-baseline justify-between gap-6 border-b border-line pb-5">

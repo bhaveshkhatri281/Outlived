@@ -49,7 +49,7 @@ export function MenuOverlay({ open, onClose, isActive }: Props) {
       <ul className="flex flex-col gap-2">
         {[...NAV, { href: "/bag", label: "Bag" }].map((item, i) => (
           <li key={item.href} className="border-b border-line pb-2">
-            <Link
+            <Link prefetch
               href={item.href}
               onClick={onClose}
               aria-current={isActive(item.href) ? "page" : undefined}
@@ -66,7 +66,7 @@ export function MenuOverlay({ open, onClose, isActive }: Props) {
 
       <div className="mt-10 flex flex-col gap-3">
         {INFO_LINKS.map((l) => (
-          <Link key={l.href} href={l.href} onClick={onClose} className="mono text-bone">
+          <Link prefetch key={l.href} href={l.href} onClick={onClose} className="mono text-bone">
             {l.label}
           </Link>
         ))}

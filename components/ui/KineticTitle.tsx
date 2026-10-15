@@ -16,9 +16,11 @@ export function KineticTitle({
   const words = text.split(" ");
   let n = 0;
   return (
-    <Tag className={className} aria-label={text}>
+    // Letters are inline-blocks (which allow line breaks between them), so each word is nowrap:
+    // titles may wrap between words, never inside one.
+    <Tag className={`break-normal [hyphens:none] ${className}`} aria-label={text}>
       {words.map((w, wi) => (
-        <span key={wi} aria-hidden="true" className="inline-block overflow-hidden pb-[0.06em] align-bottom">
+        <span key={wi} aria-hidden="true" className="inline-block overflow-hidden whitespace-nowrap pb-[0.06em] align-bottom">
           {[...w].map((ch, ci) => (
             <span
               key={ci}

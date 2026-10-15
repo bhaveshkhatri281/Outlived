@@ -17,7 +17,7 @@ const DRAIN_MS = 400; // early release drains back smoothly
 const TYPE_MS = 600; // the line types in
 const STILL_MS = 2500; // then stays fully readable
 const ERODE_MS = 4000; // then erodes slowly...
-const ERODE_MAX = 0.6; // ...never removing more than 60% of the characters
+const ERODE_MAX = 0.5; // ...never removing more than half the characters, so it stays recognisable
 const HOLD_SLOWDOWN = 0.2; // holding preserves the line
 const RING = 2 * Math.PI * 44;
 const LETTERS = [...LINE].map((ch, i) => (ch === " " ? -1 : i)).filter((i) => i >= 0);
@@ -44,6 +44,8 @@ export function EntryGate() {
   const [chars, setChars] = useState<string[]>(() => [...LINE].map(() => " "));
   const [progress, setProgress] = useState(0);
   const [hint, setHint] = useState(false);
+  // While the custom cursor shows "HOLD" over the button, hide the button's own label (no double text).
+  const [cursorLabel, setCursorLabel] = useState(false);
   const holding = useRef(false);
   const progressRef = useRef(0);
   const drain = useRef<{ from: number; at: number } | null>(null);
@@ -249,9 +251,16 @@ export function EntryGate() {
             e.currentTarget.setPointerCapture(e.pointerId);
             start();
           }}
-          onPointerUp={stop}
+          onPointerEnter={(e) => e.pointerType === "mouse" && document.documentElement.classList.contains("has-cursor") && setCursorLabel(true)}
+          onPointerUp={() => {
+            stop();
+            setCursorLabel(false);
+          }}
           onPointerCancel={stop}
-          onPointerLeave={stop}
+          onPointerLeave={() => {
+            stop();
+            setCursorLabel(false);
+          }}
           onKeyDown={(e) => {
             if (e.key === " " || e.key === "Enter") {
               e.preventDefault();
@@ -279,7 +288,7 @@ export function EntryGate() {
               strokeDashoffset={RING * (1 - progress)}
             />
           </svg>
-          <span className="mono text-center text-[10px] leading-tight text-bone">
+          <span className={`mono text-center text-[10px] leading-tight text-bone transition-opacity duration-200 ${cursorLabel ? "opacity-0" : "opacity-100"}`}>
             Hold
             <br />
             to enter

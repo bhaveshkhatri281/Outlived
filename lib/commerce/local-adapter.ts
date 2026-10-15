@@ -77,7 +77,9 @@ export const localAdapter: CommerceAdapter = {
     // Stored on this device only until a backend (WhatsApp Business API, CRM, ...) is connected.
     try {
       const key = "outlived-waitlist";
-      const list = JSON.parse(safeStorage.getItem(key) ?? "[]") as unknown[];
+      const list = JSON.parse(safeStorage.getItem(key) ?? "[]") as { phone?: string; era?: string; at?: string }[];
+      // Same number, same Era: already on the list (submitting twice never duplicates).
+      if (list.some((e) => e.phone === input.phone && e.era === input.era)) return { ok: true };
       list.push({ ...input, at: new Date().toISOString() });
       safeStorage.setItem(key, JSON.stringify(list));
       console.info("[waitlist] stored locally", input);

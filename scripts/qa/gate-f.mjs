@@ -1,0 +1,35 @@
+/** Fix F check: one clean "HOLD" label on hover; line still recognisable after 15s. */
+import { chromium } from "playwright";
+
+const BASE = process.argv[2] ?? "http://localhost:3000";
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36";
+const LINE = "MOST THINGS DON'T LAST.";
+const browser = await chromium.launch();
+const page = await (await browser.newContext({ userAgent: UA, viewport: { width: 1440, height: 900 } })).newPage();
+const issues = [];
+page.on("console", (m) => ["error", "warning"].includes(m.type()) && !/DevTools|Fast Refresh/.test(m.text()) && issues.push(m.text().slice(0, 160)));
+await page.goto(BASE + "/?gate=1", { waitUntil: "networkidle" });
+await page.waitForSelector('[aria-label="Welcome to OUTLIVED"]');
+const label = () => page.evaluate(() => getComputedStyle(document.querySelector('[aria-label="Hold to enter"] span.mono')).opacity);
+await page.mouse.move(300, 300);
+const b = await page.getByRole("button", { name: "Hold to enter" }).boundingBox();
+const before = await label();
+await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 8 });
+await page.waitForTimeout(400);
+const hovering = await label();
+const cursor = await page.evaluate(() => document.querySelector(".cursor-label").textContent);
+await page.screenshot({ path: "qa/fixF-hover.png", clip: { x: b.x - 60, y: b.y - 60, width: b.width + 120, height: b.height + 120 } });
+await page.mouse.down();
+await page.waitForTimeout(300);
+await page.mouse.up();
+await page.waitForTimeout(400);
+const afterRelease = await label();
+await page.mouse.move(200, 200, { steps: 4 });
+await page.waitForTimeout(300);
+const afterLeave = await label();
+await page.waitForTimeout(15000);
+const txt = await page.evaluate(() => document.querySelector('[aria-label="Welcome to OUTLIVED"] p span[aria-hidden]').textContent);
+const letters = [...LINE].filter((c) => c !== " ").length;
+const intact = [...LINE].filter((c, i) => c !== " " && txt[i] === c).length;
+console.log(JSON.stringify({ labelOpacity: { before, hovering, afterRelease, afterLeave }, cursorLabel: cursor, after15s: txt, intact: `${intact}/${letters}`, issues }));
+await browser.close();

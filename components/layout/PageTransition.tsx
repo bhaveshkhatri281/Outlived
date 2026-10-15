@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { getMotionTier } from "@/lib/motion/capability";
 import { playFold } from "@/lib/sound";
 
-const CLOSE_MS = 260;
+const CLOSE_MS = 250;
 const OPEN_MS = 320;
 // Bag and checkout are 0/10 animation.
 const NO_TRANSITION = ["/bag", "/checkout"];
@@ -13,7 +13,8 @@ const NO_TRANSITION = ["/bag", "/checkout"];
 /**
  * Fold wipe between pages: two ink panels hinge closed from the top and
  * bottom like a book, the route changes, then they open. The click is never
- * blocked: navigation starts within ~250ms and the whole wipe stays ≤ 650ms.
+ * blocked: the route change starts on click, in parallel with the ~250ms close; the
+ * panels open once the new route has rendered (whole wipe ≤ 650ms).
  * Card clicks use the shared-element transition instead (`data-shared`).
  */
 export function PageTransition() {
@@ -21,7 +22,7 @@ export function PageTransition() {
   const pathname = usePathname();
   const [phase, setPhase] = useState<"idle" | "closing" | "opening">("idle");
   const target = useRef<string | null>(null);
-  const closedAt = useRef(0);
+  const closeStart = useRef(0);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -40,10 +41,9 @@ export function PageTransition() {
       target.current = url.pathname + url.search + url.hash;
       setPhase("closing");
       playFold();
-      setTimeout(() => {
-        closedAt.current = performance.now();
-        router.push(target.current!);
-      }, CLOSE_MS - 20);
+      // Navigate immediately, in parallel with the panels closing (prefetched routes render at once).
+      closeStart.current = performance.now();
+      router.push(target.current);
     };
     // Capture phase: runs before next/link's handler, which then sees defaultPrevented and stands down.
     document.addEventListener("click", onClick, true);
@@ -54,7 +54,8 @@ export function PageTransition() {
   useEffect(() => {
     if (phase !== "closing" || !target.current) return;
     if (new URL(target.current, location.origin).pathname !== pathname) return;
-    const wait = Math.max(0, 40 - (performance.now() - closedAt.current));
+    // Open once the new route has rendered AND the panels have finished closing.
+    const wait = Math.max(0, CLOSE_MS - (performance.now() - closeStart.current));
     const t = setTimeout(() => {
       setPhase("opening");
       setTimeout(() => setPhase("idle"), OPEN_MS);

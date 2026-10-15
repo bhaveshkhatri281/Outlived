@@ -6,16 +6,22 @@ import { useMotionTier } from "@/lib/motion/capability";
 import { useGsap } from "@/lib/motion/useGsap";
 
 const STRIPS = 5;
-// Close-up of Soft Tessellation's folds (built by scripts/make-editorial.ts).
+// Close-up of Soft Tessellation's folds (built by scripts/make-editorial.ts): an ~8x upscale, so it is
+// framed at max ~900px with film grain. PLACEHOLDER: replace with hi-res macro
+// (public/editorial/unfold-tessellation-hires.webp); the panel goes full-bleed automatically once it exists.
 const SRC = "/editorial/unfold-tessellation.webp";
+const HIRES_SRC = "/editorial/unfold-tessellation-hires.webp";
 const ASPECT = 2160 / 1328;
+// Soft edges on all four sides, so no straight image edge shows against the page.
+const EDGE_FEATHER =
+  "linear-gradient(to right, transparent 0%, #000 9%, #000 91%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 10%, #000 90%, transparent 100%)";
 
 /**
  * The Unfold: a full-width close-up of the folds that starts creased into 5
  * horizontal strips (alternating rotateX ±60°, the inward strips shaded darker)
  * and flattens as you scroll, scrubbed over ~80vh (~60vh on phones).
  */
-export function UnfoldPanel() {
+export function UnfoldPanel({ hires = false }: { hires?: boolean }) {
   const tier = useMotionTier();
   const ref = useRef<HTMLDivElement>(null);
   // Lazy: the 2160px close-up only loads when the panel is within a screen of the viewport.
@@ -53,7 +59,11 @@ export function UnfoldPanel() {
 
   return (
     <section aria-labelledby="unfold-title" className="py-24 md:py-40">
-      <div ref={ref} className="relative w-full [perspective:1600px]" style={{ aspectRatio: ASPECT }}>
+      <div
+        ref={ref}
+        className={`relative w-full [perspective:1600px] ${hires ? "" : "md:mx-auto md:max-w-[900px]"}`}
+        style={{ aspectRatio: ASPECT, maskImage: EDGE_FEATHER, WebkitMaskImage: EDGE_FEATHER, maskComposite: "intersect", WebkitMaskComposite: "source-in" }}
+      >
         {Array.from({ length: STRIPS }).map((_, i) => (
           <div
             key={i}
@@ -63,7 +73,7 @@ export function UnfoldPanel() {
               top: `${(i / STRIPS) * 100}%`,
               height: `calc(${100 / STRIPS}% + 1px)`, // 1px overlap hides sub-pixel seams
               transformOrigin: i % 2 ? "50% 0%" : "50% 100%",
-              backgroundImage: near ? `url(${SRC})` : undefined,
+              backgroundImage: near ? `url(${hires ? HIRES_SRC : SRC})` : undefined,
               backgroundSize: "100% auto",
               backgroundPosition: `0 ${(i / (STRIPS - 1)) * 100}%`,
             }}
@@ -71,6 +81,8 @@ export function UnfoldPanel() {
             <div data-fold-shade className="absolute inset-0 bg-ink opacity-0" />
           </div>
         ))}
+        {/* Film grain (~4%) over the upscaled crop, to hide compression. */}
+        {!hires && <div aria-hidden="true" className="film-grain pointer-events-none absolute inset-0" />}
         {/* Soft edges so the close-up melts into the page. */}
         <div
           aria-hidden="true"

@@ -70,10 +70,11 @@ void main() {
   float midTurn = step(0.002, uP) * step(uP, 0.998);
   col += vec3(0.93, 0.9, 0.85) * pow(near, 7.0) * 0.16 * midTurn;
   col *= 1.0 + vShade * 0.3;
-  // Fade only the outer edges of the photo (same shape as the CSS .lit-edge mask): the figure
-  // itself stays fully opaque. uv.y = 1 at the top.
-  float edge = smoothstep(0.0, 0.07, uv.x) * smoothstep(1.0, 0.93, uv.x)
-    * smoothstep(1.0, 0.975, uv.y) * smoothstep(0.0, 0.18, uv.y);
+  // Same edge feather as the CSS .photo-blend-gl / .photo-blend-inner masks (lib/photo-blend.ts):
+  // the photo melts into its blended frame; the figure itself stays fully opaque.
+  float t = 1.0 - uv.y;
+  float edge = clamp(uv.x / 0.073, 0.0, 1.0) * clamp((1.0 - uv.x) / 0.073, 0.0, 1.0)
+    * clamp(t / 0.037, 0.0, 1.0) * clamp((1.0 - t) / 0.171, 0.0, 1.0);
   gl_FragColor = vec4(col, edge * uReveal);
 }`;
 

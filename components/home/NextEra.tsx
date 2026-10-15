@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { MonoLabel } from "@/components/ui/MonoLabel";
 import { commerce, normalizeIndianMobile, type Product } from "@/lib/commerce";
@@ -32,15 +32,20 @@ export function NextEra({ pieces }: { pieces: Product[] }) {
   const [status, setStatus] = useState<"idle" | "error" | "done">("idle");
   const [message, setMessage] = useState("");
 
+  const inFlight = useRef(false);
+
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    if (inFlight.current) return; // a second quick submit while the first is saving
     const normalized = normalizeIndianMobile(phone);
     if (!normalized) {
       setStatus("error");
       setMessage("Enter a 10-digit Indian mobile number.");
       return;
     }
+    inFlight.current = true;
     const res = await commerce.joinWaitlist({ phone: normalized, era: "03", channel });
+    inFlight.current = false;
     if (res.ok) {
       setStatus("done");
       setMessage(`We'll message +91 ${normalized.slice(0, 5)} ${normalized.slice(5)} the moment Era 03 is recovered.`);

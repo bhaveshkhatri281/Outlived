@@ -99,6 +99,12 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
+/* Local film grain (same noise as the page grain), for low-res imagery. */
+.film-grain {
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 @layer utilities {
   /* Museum-placard catalog text: codes, specs, unit counts, prices. */
   .mono {
@@ -200,6 +206,44 @@ html.lenis body {
   mask-composite: intersect;
 }
 
+/* ── Blended photo (shared) ───────────────────────────────────────────
+   The frame (backdrop-coloured) feathers on all four edges: 15% left,
+   right and top, 20% bottom. The photo sits inset inside it (12% top,
+   9% sides, 6% bottom), so the feather lands on margin, never on the head
+   or sleeves. Keep in sync with lib/photo-blend.ts. */
+.photo-blend {
+  background: var(--plinth);
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, #000 15%, #000 85%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 15%, #000 80%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0%, #000 15%, #000 85%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 15%, #000 80%, transparent 100%);
+  mask-composite: intersect;
+}
+.photo-blend-inner {
+  position: absolute;
+  top: 12%;
+  left: 9%;
+  right: 9%;
+  bottom: 6%;
+}
+/* The photo box also melts its own edges into the frame, over the photo's own backdrop band
+   (above the head, beside the sleeves) and the cut-off legs at the bottom. Used on the photo
+   box, the hover canvas and (same numbers) the WebGL hero plane. */
+.photo-blend-inner,
+.photo-blend-gl {
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, #000 7.3%, #000 92.7%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 3.7%, #000 82.9%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0%, #000 7.3%, #000 92.7%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 3.7%, #000 82.9%, transparent 100%);
+  mask-composite: intersect;
+}
+
 /* Clip reveal: images wipe up from the bottom the first time they enter.
    Only hidden when JS is running, so content never disappears without it. */
 html.js .reveal-clip {
@@ -208,6 +252,10 @@ html.js .reveal-clip {
 }
 html.js .reveal-clip.is-in {
   clip-path: inset(0 0 0 0);
+}
+/* Already scrolled past (jump, reload mid-page): show without animating. */
+html.js .reveal-clip.reveal-instant {
+  transition: none;
 }
 @media (prefers-reduced-motion: reduce) {
   html.js .reveal-clip {

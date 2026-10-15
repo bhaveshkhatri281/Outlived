@@ -31,7 +31,7 @@ export function Header() {
       </a>
       <header className="fixed inset-x-0 top-0 z-50 border-b border-line bg-ink/90 backdrop-blur-md">
         <div className="gutter flex h-[var(--header-h)] items-center justify-between">
-          <Link
+          <Link prefetch
             href="/"
             className="text-[20px] font-extrabold uppercase leading-none tracking-[-0.045em] md:text-[22px]"
             aria-label="OUTLIVED, home"
@@ -44,7 +44,7 @@ export function Header() {
             <ul className="hidden items-center gap-9 md:flex">
               {NAV.map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className={linkClass} aria-current={isActive(item.href) ? "page" : undefined}>
+                  <Link prefetch href={item.href} className={linkClass} aria-current={isActive(item.href) ? "page" : undefined}>
                     {item.label}
                   </Link>
                 </li>
@@ -80,7 +80,7 @@ function BagLink({ active }: { active: boolean }) {
   const count = useCart(selectCount);
   const hydrated = useCartHydrated();
   return (
-    <Link
+    <Link prefetch
       href="/bag"
       className={linkClass}
       aria-current={active ? "page" : undefined}

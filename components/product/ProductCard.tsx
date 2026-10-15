@@ -60,16 +60,14 @@ export function ProductCard({ product: p, scale = "md", sizes, priority = false,
     <article className="group/card">
       <Link href={href} onClick={onClick} data-cursor="view" data-shared className="relative block focus-visible:outline-offset-8">
         <div
-          ref={frameRef}
-          data-gl-hover
-          data-gl-src={p.images[VIEWS[view]]}
-          data-gl-aspect={width / height}
           onPointerMove={onMove}
           onPointerLeave={() => setView(0)}
-          // Phones: never taller than ~70vh (cover, anchored top so heads stay in frame).
-          className="reveal-clip lit relative bg-plinth max-md:max-h-[70vh]"
+          // Blended frame (feathers on all edges); phones: never taller than ~70vh.
+          className="reveal-clip photo-blend relative max-md:max-h-[70vh]"
           style={{ aspectRatio: CARD_ASPECT }}
         >
+          {/* The photo box, inset in the frame (also the hover-canvas and shared-transition target). */}
+          <div ref={frameRef} data-gl-hover data-gl-src={p.images[VIEWS[view]]} data-gl-aspect={width / height} className="photo-blend-inner">
           {/* One image set: stacked and scrubbed by the pointer on desktop, a swipe row on touch. */}
           <div
             className="gl-hide no-scrollbar absolute inset-0 touch:flex touch:snap-x touch:snap-mandatory touch:overflow-x-auto"
@@ -93,6 +91,7 @@ export function ProductCard({ product: p, scale = "md", sizes, priority = false,
                 }`}
               />
             ))}
+          </div>
           </div>
           <div className="pointer-events-none absolute inset-x-0 bottom-3 hidden justify-center gap-1.5 touch:flex max-md:bottom-auto max-md:top-3" aria-hidden="true">
             {VIEWS.map((v, i) => (

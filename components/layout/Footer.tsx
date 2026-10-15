@@ -21,7 +21,7 @@ export function Footer() {
           <ul className="flex flex-col gap-1.5">
             {NAV.map((l) => (
               <li key={l.href}>
-                <Link href={l.href} className={colLink}>
+                <Link prefetch href={l.href} className={colLink}>
                   {l.label}
                 </Link>
               </li>
@@ -34,7 +34,7 @@ export function Footer() {
           <ul className="flex flex-col gap-1.5">
             {INFO_LINKS.map((l) => (
               <li key={l.href}>
-                <Link href={l.href} className={colLink}>
+                <Link prefetch href={l.href} className={colLink}>
                   {l.label}
                 </Link>
               </li>
@@ -64,7 +64,7 @@ export function Footer() {
         <ul className="flex gap-6">
           {POLICY_LINKS.map((l) => (
             <li key={l.href}>
-              <Link href={l.href} className={colLink}>
+              <Link prefetch href={l.href} className={colLink}>
                 {l.label}
               </Link>
             </li>

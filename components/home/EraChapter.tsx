@@ -210,19 +210,18 @@ function PageContent({ product: p, index, count, compact = false }: { product: P
       <Link
         href={href}
         data-cursor="view"
-        data-gl-hover
-        data-gl-src={p.images.front}
-        data-gl-aspect={520 / 968}
-        className={`relative block bg-plinth ${compact ? "lit-edge aspect-[520/640]" : "lit col-span-6 h-full"}`}
+        className={`photo-blend relative block ${compact ? "aspect-[520/640]" : "col-span-6 h-full"}`}
         aria-label={`${p.name}, view piece`}
       >
-        <Image
-          src={p.images.front}
-          alt={viewAlt(p, "front")}
-          fill
-          sizes={compact ? "80vw" : "45vw"}
-          className="gl-hide object-cover object-top"
-        />
+        <div data-gl-hover data-gl-src={p.images.front} data-gl-aspect={520 / 968} className="photo-blend-inner">
+          <Image
+            src={p.images.front}
+            alt={viewAlt(p, "front")}
+            fill
+            sizes={compact ? "80vw" : "45vw"}
+            className="gl-hide object-cover object-top"
+          />
+        </div>
       </Link>
       <div className={`flex flex-col justify-between ${compact ? "gap-6 p-5" : "col-span-6 p-[3vw]"}`}>
         <div>

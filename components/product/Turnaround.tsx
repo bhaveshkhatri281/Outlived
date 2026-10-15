@@ -189,11 +189,12 @@ export function Turnaround({ product: p, hotspots }: { product: Product; hotspot
           className="pointer-events-none absolute -inset-x-[30%] -top-[8%] bottom-[10%] -z-10"
           style={{ background: "radial-gradient(ellipse 50% 60% at 50% 38%, color-mix(in oklab, var(--bone) 7%, transparent), transparent 70%)" }}
         />
+        {/* Blended frame (feathers on all edges); the photo box (boxRef) sits inset inside it. */}
         <div
-          ref={boxRef}
-          className="relative mx-auto max-h-[72svh] md:max-h-[calc(100svh-var(--header-h)-120px)]"
+          className="photo-blend relative mx-auto max-h-[72svh] md:max-h-[calc(100svh-var(--header-h)-120px)]"
           style={{ aspectRatio: `${width} / ${height}`, height: "min(1200px, 100svh)" }}
         >
+        <div ref={boxRef} className="photo-blend-inner">
           {VIEWS.map((v, i) => (
             <div
               key={v}
@@ -201,7 +202,7 @@ export function Turnaround({ product: p, hotspots }: { product: Product; hotspot
                 layers.current[i] = el;
               }}
               data-vt-hero={i === 0 ? "" : undefined}
-              className="lit absolute inset-0 bg-plinth will-change-transform"
+              className="absolute inset-0 will-change-transform"
               style={{ opacity: i === 0 ? 1 : 0 }}
             >
               <Image
@@ -263,6 +264,7 @@ export function Turnaround({ product: p, hotspots }: { product: Product; hotspot
               <span className="mono absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-bone">2.5× · drag</span>
             </div>
           )}
+        </div>
         </div>
 
         {hint && (

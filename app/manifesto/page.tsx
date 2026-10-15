@@ -36,7 +36,7 @@ export default async function ManifestoPage() {
         <MonoLabel as="p" className="mb-5">
           The case for what lasts
         </MonoLabel>
-        <KineticTitle text="Manifesto" className="text-[19vw] font-extrabold uppercase leading-[0.78] tracking-[-0.065em] md:text-[14vw]" />
+        <KineticTitle text="Manifesto" className="text-[17vw] font-extrabold uppercase leading-[0.78] tracking-[-0.065em] md:text-[14vw]" />
       </header>
 
       <Statements lines={BEFORE} />

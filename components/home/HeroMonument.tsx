@@ -9,6 +9,7 @@ import { MonoLabel, placard } from "@/components/ui/MonoLabel";
 import { formatINR } from "@/lib/commerce/format";
 import { VIEWS, type Product } from "@/lib/commerce/types";
 import { imageSize, viewAlt } from "@/lib/images";
+import { FRAME_AROUND_PHOTO } from "@/lib/photo-blend";
 import { downgradeTier, useFinePointer, useMotionTier } from "@/lib/motion/capability";
 
 const MonumentScene = dynamic(() => import("./MonumentScene"), { ssr: false });
@@ -161,16 +162,19 @@ export function HeroMonument({ product: p }: { product: Product }) {
         <div
           ref={figureRef}
           className="absolute left-1/2 top-[9svh] h-[70svh] -translate-x-1/2 md:top-[8svh] md:h-[92svh]"
-          style={{ aspectRatio: `${width} / ${height}`, visibility: hideDom ? "hidden" : "visible" }}
+          style={{ aspectRatio: `${width} / ${height}` }}
         >
+          {/* Blended frame around the photo box: feathers on all four edges, outside the figure. Stays
+              visible under the WebGL plane, which applies the same feather from inside. */}
+          <div aria-hidden="true" className="photo-blend absolute" style={FRAME_AROUND_PHOTO} />
           {VIEWS.map((v, i) => (
             <div
               key={v}
               ref={(el) => {
                 layers.current[i] = el;
               }}
-              className="lit-edge absolute inset-0 bg-plinth will-change-[opacity]"
-              style={{ opacity: i === 0 ? 1 : 0 }}
+              className="photo-blend-gl absolute inset-0 bg-plinth will-change-[opacity]"
+              style={{ opacity: i === 0 ? 1 : 0, visibility: hideDom ? "hidden" : "visible" }}
             >
               <Image
                 src={p.images[v]}

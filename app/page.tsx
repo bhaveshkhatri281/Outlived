@@ -4,6 +4,11 @@ import { ManifestoStrip } from "@/components/home/ManifestoStrip";
 import { NextEra } from "@/components/home/NextEra";
 import { UnfoldPanel } from "@/components/home/UnfoldPanel";
 import { commerce } from "@/lib/commerce";
+import fs from "node:fs";
+import path from "node:path";
+
+// The Unfold switches to full-bleed automatically once the hi-res macro is added.
+const UNFOLD_HIRES = fs.existsSync(path.join(process.cwd(), "public/editorial/unfold-tessellation-hires.webp"));
 
 // PLACEHOLDER: which pieces open each Era chapter (4 per Era).
 const FEATURED: Record<string, string[]> = {
@@ -26,7 +31,7 @@ export default async function Home() {
       <HeroMonument product={hero} />
       <ManifestoStrip />
       {chapter("01")}
-      <UnfoldPanel />
+      <UnfoldPanel hires={UNFOLD_HIRES} />
       {chapter("02")}
       <NextEra pieces={products.filter((p) => p.status === "upcoming")} />
     </>
